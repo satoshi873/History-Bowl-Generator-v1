@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IHBB 4-Quarter History Bowl Practice Match</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Newsreader', 'Georgia', 'serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            navy: {
+              850: '#131d31',
+              900: '#0f172a',
+              950: '#090e1a',
+            },
+            parchment: {
+              50: '#FAF8F5',
+              100: '#F3EFE8',
+              200: '#E6DEC8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulseBuzz {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45); }
+      50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+    }
+    .buzz-ready {
+      animation: pulseBuzz 2s infinite;
+    }
+    .word-reveal {
+      transition: opacity 110ms ease;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.55);
+    }
+  </style>
+</head>
+<body class="bg-parchment-50 text-slate-900 dark:bg-navy-950 dark:text-slate-100 min-h-screen antialiased selection:bg-amber-500/25">
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- Persistent Top Scoreboard & Quarter Header -->
+    <header class="sticky top-0 z-30 border-b border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-navy-900/95 backdrop-blur shadow-2xs">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <!-- Brand & Packet Badge -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-navy-900 dark:bg-amber-600 text-amber-400 dark:text-navy-950 flex items-center justify-center font-serif font-bold text-lg shadow-sm border border-amber-500/30">
+              IHBB
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="font-serif font-bold text-lg sm:text-xl tracking-tight text-navy-900 dark:text-slate-100">
+                  International History Bowl
+                </h1>
+                <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  No Negs · 600 Pts Max
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Authentic 4-Quarter Match · Typed Answers
+              </p>
+            </div>
+          </div>
+
+          <!-- Total Score & Controls -->
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-parchment-100 dark:bg-navy-850 border border-slate-200 dark:border-slate-700">
+              <div class="flex flex-col items-end">
+                <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">Total Match Score</span>
+                <div class="flex items-baseline gap-1">
+                  <span id="headerTotalScore" class="font-mono font-extrabold text-lg sm:text-xl text-navy-900 dark:text-amber-400">0</span>
+                  <span class="font-mono text-xs text-slate-400">/ 600</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="btnSummaryView"
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 transition cursor-pointer"
+            >
+              Scorecard
+            </button>
+
+            <button
+              id="btnPacketDrawer"
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition cursor-pointer"
+              title="Switch packets or generate a fresh packet"
+            >
+              Packets / New
+            </button>
+
+            <button
+              id="btnResetRound"
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-slate-800/70 hover:bg-red-950/70 text-slate-300 hover:text-red-300 border border-slate-700/80 transition cursor-pointer"
+              title="Start a fresh 600-point round with a new packet"
+            >
+              New Round
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Packet Strip + 4-Quarter Stepper Bar -->
+        <div id="activePacketBar" class="mt-2.5 flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-parchment-100 dark:bg-navy-850 border border-slate-200 dark:border-slate-700 text-xs">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- 4-Quarter Stepper Bar: Q1 [100], Q2 [160], Q3 [100], Q4 [240] -->
+        <nav id="quarterStepper" aria-label="Quarter Stepper" class="mt-2.5 grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <!-- Rendered dynamically -->
+        </nav>
+      </div>
+    </header>
+
+    <!-- Packet Switcher & Fresh Packet Generator Modal -->
+    <div id="packetModalBackdrop" class="fixed inset-0 z-40 hidden bg-slate-950/70 backdrop-blur-xs items-center justify-center p-4">
+      <div id="packetModalCard" class="bg-white text-slate-900 border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto space-y-6">
+        <div class="flex items-start justify-between gap-4 pb-3 border-b border-slate-100">
+          <div>
+            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-700">Packet Rotation & Fresh Set Builder</span>
+            <h2 class="font-serif font-bold text-2xl text-slate-900 mt-0.5">Choose or Build a 4-Quarter Packet</h2>
+          </div>
+          <button id="btnClosePacketModal" type="button" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
+            Close ✕
+          </button>
+        </div>
+
+        <!-- Fresh Packet Generator -->
+        <div class="rounded-2xl bg-parchment-50 border border-parchment-200 p-4 sm:p-5 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-navy-900">Generate Fresh 4-Quarter Packet</span>
+            <span id="seenCountBadge" class="text-[11px] font-mono text-slate-500">0 seen prompts tracked</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Builds a fresh 4-quarter IHBB packet (10 Q1 tossups, 8 Q2 tossup+bonus pairs, 3×8 Q3 lightning categories, and 8 Q4 30/20/10 tossups) from the expanded question bank (including IHBB Asian Championships rounds) while prioritizing unseen items.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label for="aiTopicPreset" class="block text-[11px] font-semibold text-slate-700 mb-1">Topic / Era / Region Focus</label>
+              <select id="aiTopicPreset" class="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-navy-900">
+                <option value="Balanced World History (IHBB Regional Style)">Balanced World History (Regional)</option>
+                <option value="Asian & South Asian History">Asian & South Asian History</option>
+                <option value="European & Atlantic History">European & Atlantic History</option>
+                <option value="Ancient & Medieval World">Ancient & Medieval World</option>
+                <option value="Custom Theme">Custom Theme...</option>
+              </select>
+            </div>
+            <div>
+              <label for="aiCustomFocus" class="block text-[11px] font-semibold text-slate-700 mb-1">Custom Focus (Optional)</label>
+              <input
+                id="aiCustomFocus"
+                type="text"
+                placeholder="e.g., Cold War, Silk Road, Latin America..."
+                class="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-navy-900"
+              />
+            </div>
+          </div>
+
+          <div id="aiGenStatusBox" class="hidden rounded-xl px-3.5 py-2.5 text-xs font-medium bg-amber-100/80 text-amber-950 border border-amber-300"></div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <button
+              id="btnClearSeenHistory"
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 cursor-pointer"
+            >
+              Clear Seen History
+            </button>
+            <button
+              id="btnGenerateAiPacket"
+              type="button"
+              class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-navy-900 hover:bg-navy-800 text-white shadow-xs transition cursor-pointer"
+            >
+              ✦ Generate New Packet
+            </button>
+          </div>
+        </div>
+
+        <!-- Available Packets List -->
+        <div class="space-y-2.5">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-slate-500">Available 4-Quarter Packets</div>
+          <div id="packetListContainer" class="space-y-2.5">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <main id="mainContent" class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <!-- Rendered dynamically -->
+    </main>
+
+    <!-- Toast Feedback Banner -->
+    <div id="toastBanner" class="fixed bottom-5 right-5 z-50 max-w-sm pointer-events-none opacity-0 translate-y-2 transition-all duration-200">
+      <div id="toastInner" class="px-4 py-3 rounded-2xl shadow-xl border border-slate-700 bg-navy-900 text-white text-sm font-medium"></div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * IHBB 4-Quarter Practice App (600-Point Maximum, Zero Negative Points)
+     * - Quarter 1: 10 Short Tossups (+10 pts each = 100 pts)
+     * - Quarter 2: 8 Tossups (+10 pts) with Unlocked Bonuses (+10 pts = 160 pts)
+     * - Quarter 3: 60s Lightning Round across 3 Categories of 8 Questions (+10 pts each + 20 sweep = 100 pts)
+     * - Quarter 4: 8 Power Tossups in 30 / 20 / 10 Pyramid Zones (= 240 pts)
+     * - Includes questions from attached IHBB Asian Championships Bowl/Bee rounds
+     * - Fast non-blocking packet builder with localStorage persistence & seen-question deduplication
+     */
+
+    // =========================================================================
+    // 1. BUILT-IN PACKETS & IMPORTED IHBB CHAMPIONSHIP QUESTION BANK
+    // =========================================================================
+    const PACKET_1 = {
+      id: "pkt-1-regional",
+      title: "Packet 1: Balanced IHBB Regional Set",
+      focus: "World History · Cross-Regional Mix",
+      isAi: false,
+      q1Tossups: [
+        {
+          id: "p1-q1-1",
+          number: 1,
+          category: "Ancient & Classical",
+          text: "Early in the Second Punic War, this general marched across the Ebro River and the Pyrenees with infantry, cavalry, and war elephants before surviving treacherous alpine crossings into northern Italy. He then won devastating victories at the Trebbia River, around Lake Trasimene, and at Cannae—where a double envelopment trapped a massive Roman force—before eventually being recalled to Africa and defeated by Scipio Africanus at Zama. Name this Carthaginian commander.",
+          answer: "Hannibal Barca",
+          aliases: ["hannibal", "hannibal barca"],
+          explanation: "Hannibal led Carthaginian forces across the Alps into Italy, inflicting Rome's worst defeat at Cannae (216 BCE) before falling at Zama (202 BCE)."
+        },
+        {
+          id: "p1-q1-2",
+          number: 2,
+          category: "East Asian History",
+          text: "Concluded in August 1842 aboard HMS Cornwallis after British naval forces seized control of key riverine and coastal positions along the Yangtze delta, this agreement dismantled the old Canton Cohong trading monopoly and required a sizable indemnity from the Qing court. It also opened five ports—Canton, Amoy, Fuzhou, Ningbo, and Shanghai—to British trade and ceded Hong Kong Island in perpetuity. Name this treaty that ended the First Opium War.",
+          answer: "Treaty of Nanking",
+          aliases: ["treaty of nanjing", "nanking treaty", "nanjing treaty", "nanking", "nanjing"],
+          explanation: "The 1842 Treaty of Nanking (Nanjing) was the first of the 'unequal treaties' between Qing China and Western powers."
+        },
+        {
+          id: "p1-q1-3",
+          number: 3,
+          category: "Medieval Europe",
+          text: "Pressed by discontented English barons after heavy scutage levies, military setbacks on the Continent, and a prolonged dispute with Pope Innocent III, King John met rebels in June 1215 at a meadow along the River Thames. Although the pope soon annulled it and civil war resumed, the resulting Latin charter affirmed church liberties, curtailed arbitrary feudal dues, and promised justice would not be sold, denied, or delayed. Name this landmark document sealed at Runnymede.",
+          answer: "Magna Carta",
+          aliases: ["the magna carta", "great charter", "magna charta"],
+          explanation: "King John affixed his seal to Magna Carta in 1215, establishing foundational limits on arbitrary royal taxation and imprisonment."
+        },
+        {
+          id: "p1-q1-4",
+          number: 4,
+          category: "African History",
+          text: "Emerging around 1235 after Sundiata Keita defeated Susu ruler Soumaoro Kante at the Battle of Kirina, this West African empire prospered by taxing trans-Saharan caravans moving gold from forest regions and salt from the Sahara. Its cities—including Niani, Gao, and Timbuktu—became major centers of commerce and Islamic learning, reaching peak international renown during Mansa Musa's 1324 pilgrimage to Mecca. Name this empire.",
+          answer: "Mali Empire",
+          aliases: ["mali", "empire of mali", "kingdom of mali"],
+          explanation: "Sundiata Keita established the Mali Empire in the thirteenth century; Mansa Musa later brought it international fame during his 1324 hajj."
+        },
+        {
+          id: "p1-q1-5",
+          number: 5,
+          category: "Americas History",
+          text: "After an earlier French canal company led by Ferdinand de Lesseps collapsed amid mountainous excavation challenges, landslides, and devastating outbreaks of yellow fever and malaria, the United States took over construction in the early twentieth century. Relying heavily on sanitation campaigns by William Gorgas and thousands of West Indian laborers—especially from Barbados—to engineer Gatun Lake and massive locks, this project opened in August 1914. Name this waterway linking the Atlantic and Pacific Oceans.",
+          answer: "Panama Canal",
+          aliases: ["the panama canal"],
+          explanation: "Completed by the United States in 1914 after sanitation campaigns eradicated mosquito-borne disease, the Panama Canal revolutionized global shipping."
+        },
+        {
+          id: "p1-q1-6",
+          number: 6,
+          category: "Science & Ideas",
+          text: "Working as a canon in Frombork while pursuing astronomy, mathematics, and medicine, this Renaissance thinker circulated an early 'Commentariolus' sketch before spending decades refining his astronomical models. Printed in Nuremberg in 1543 just as its author lay dying, his six-book treatise argued that Earth spins daily on its axis and revolves around a stationary Sun alongside the other planets. Name this astronomer who wrote On the Revolutions of the Heavenly Spheres.",
+          answer: "Nicolaus Copernicus",
+          aliases: ["copernicus", "nikolaus kopernikus", "mikolaj kopernik"],
+          explanation: "Copernicus's 'De revolutionibus orbium coelestium' displaced the Ptolemaic geocentric cosmos and launched the Scientific Revolution."
+        },
+        {
+          id: "p1-q1-7",
+          number: 7,
+          category: "South Asian History",
+          text: "Grandson of Chandragupta Maurya, this ruler expanded his empire across most of the Indian subcontinent before fighting a brutal war around 261 BCE that left over a hundred thousand dead and even more displaced. Deeply shaken by the slaughter, he embraced Buddhist teachings of nonviolence and had pillars and rock faces inscribed across South Asia with edicts urging tolerance, moral conduct, and welfare. Name this Mauryan emperor.",
+          answer: "Ashoka",
+          aliases: ["ashoka the great", "asoka", "emperor ashoka"],
+          explanation: "Horrified by the carnage of the Kalinga War, Ashoka promoted Buddhist dharma, religious tolerance, and public welfare across his empire."
+        },
+        {
+          id: "p1-q1-8",
+          number: 8,
+          category: "Modern Europe",
+          text: "Convening in mid-July 1945 at Cecilienhof palace in a Berlin suburb after Germany's surrender, Allied leaders—including Harry S. Truman and Joseph Stalin, alongside Winston Churchill and then incoming Prime Minister Clement Attlee—negotiated postwar European arrangements. The summit worked out German occupation zones, Polish western borders along the Oder-Neisse line, and a joint declaration calling on Japan to surrender unconditionally. Name this World War II summit conference.",
+          answer: "Potsdam Conference",
+          aliases: ["potsdam", "the potsdam conference"],
+          explanation: "Held at Cecilienhof in Potsdam from July 17 to August 2, 1945, the Potsdam Conference finalized postwar European borders and issued the Potsdam Declaration."
+        },
+        {
+          id: "p1-q1-9",
+          number: 9,
+          category: "Middle Eastern History",
+          text: "Rebuilt rapidly between 532 and 537 CE after the Nika riots destroyed an earlier church, this grand Constantinople basilica drew on the mathematical and structural skill of Anthemius of Tralles and Isidore of Miletus. Their daring combination of pendentives and semi-domes allowed a vast central dome to appear suspended over shimmering mosaics and marble columns before it became an imperial mosque in 1453. Name this cathedral.",
+          answer: "Hagia Sophia",
+          aliases: ["the hagia sophia", "ayasofya", "church of the holy wisdom"],
+          explanation: "Completed in 537 CE in Constantinople (modern Istanbul), Hagia Sophia stood as the world's largest cathedral for nearly a millennium."
+        },
+        {
+          id: "p1-q1-10",
+          number: 10,
+          category: "Twentieth-Century World",
+          text: "Co-founding the ANC Youth League and the Umkhonto we Sizwe armed wing after the 1960 Sharpeville massacre, this lawyer was sentenced to life imprisonment at the 1963–1964 Rivonia Trial and spent twenty-seven years behind bars—mostly on Robben Island. Following his 1990 release and negotiations to end white-minority rule, he shared the 1993 Nobel Peace Prize with F. W. de Klerk and became South Africa's first Black president in 1994. Name this anti-apartheid statesman.",
+          answer: "Nelson Mandela",
+          aliases: ["mandela", "nelson rolilhahla mandela"],
+          explanation: "Nelson Mandela led South Africa's transition out of apartheid and served as president from 1994 to 1999."
+        }
+      ],
+      q2Pairs: [
+        {
+          id: "p1-q2-1",
+          number: 1,
+          category: "European Diplomacy",
+          tossup: {
+            text: "Following the first abdication of Napoleon Bonaparte in the spring of 1814 and the Treaty of Chaumont among the major victorious powers, diplomats gathered in the Habsburg capital to construct a durable postwar European order based on legitimacy and balance of power. Orchestrated primarily by Austrian Foreign Minister Klemens von Metternich alongside Britain's Viscount Castlereagh, Prussia's Karl August von Hardenberg, and Russia's Tsar Alexander I, the delegates navigated territorial claims over Saxony and Poland while interrupting their deliberations during Napoleon's dramatic Hundred Days return in 1815. By creating the thirty-nine-state German Confederation and establishing periodic great-power consultations known as the Concert of Europe, this gathering helped prevent continent-wide war for decades. Name this landmark international assembly.",
+            answer: "Congress of Vienna",
+            aliases: ["the congress of vienna", "vienna congress"],
+            explanation: "The Congress of Vienna (1814–1815) restored legitimate monarchies, balanced European powers, and established the Concert of Europe."
+          },
+          bonus: {
+            prompt: "Representing France at the Congress of Vienna with remarkable poise despite his country's recent defeats, this seasoned statesman had previously served as bishop of Autun, foreign minister under Napoleon, and minister under Louis XVIII, skillfully exploiting rifts among the victorious powers to restore France's diplomatic standing. Name this French diplomat.",
+            answer: "Charles Maurice de Talleyrand",
+            aliases: ["talleyrand", "charles-maurice de talleyrand-perigord", "prince talleyrand"],
+            explanation: "Talleyrand deftly turned disagreements among Britain, Austria, Russia, and Prussia into a seat at the inner negotiating table for France."
+          }
+        },
+        {
+          id: "p1-q2-2",
+          number: 2,
+          category: "East Asian History",
+          tossup: {
+            text: "Rising out of peasant rebellions and anti-Mongol uprisings along the Huai and Yangtze river valleys in the mid-fourteenth century, this Chinese dynasty was founded in 1368 by former monk and rebel commander Zhu Yuanzhang, who reigned as the Hongwu Emperor. Later, the Yongle Emperor shifted the imperial capital north to Beijing, expanded the Grand Canal, commissioned a massive literary compendium, and sent Admiral Zheng He's multi-decked treasure fleets across the South China Sea and Indian Ocean to East Africa. Renowned for civil service examinations, reconstruction of the Great Wall, and cobalt-blue ceramics, name this dynasty that ruled from 1368 to 1644.",
+            answer: "Ming Dynasty",
+            aliases: ["ming", "the ming dynasty", "great ming"],
+            explanation: "The Ming Dynasty succeeded the Mongol Yuan dynasty and oversaw major state centralization, maritime voyages, and porcelain production."
+          },
+          bonus: {
+            prompt: "During the Ming Dynasty, the Yongle Emperor commissioned an enormous reference compilation in 1403 that gathered over eleven thousand manuscript volumes of Chinese history, philosophy, agriculture, and arts—or alternatively, name the famous blue-and-white ceramic ware fired at the kiln center of Jingdezhen during Ming rule.",
+            answer: "Yongle Encyclopedia",
+            aliases: ["yongle dadian", "ming porcelain", "porcelain", "blue and white porcelain", "jingdezhen porcelain"],
+            explanation: "Both the Yongle Dadian (Yongle Encyclopedia) and Jingdezhen blue-and-white porcelain exemplify Ming cultural and scholarly ambition."
+          }
+        },
+        {
+          id: "p1-q2-3",
+          number: 3,
+          category: "American Revolution",
+          tossup: {
+            text: "Designed in London as a three-pronged campaign to sever New England from the rest of the rebellious American colonies by converging along the Hudson River corridor, this British offensive faltered when Barry St. Leger's force turned back at Fort Stanwix and William Howe sailed toward Philadelphia rather than marching north from New York City. Left largely unsupported in the wilderness of upstate New York, British General John Burgoyne fought two engagements near Freeman's Farm and Bemis Heights against American forces commanded by Horatio Gates and Benedict Arnold before surrendering his entire army in October 1777. That surrender persuaded King Louis XVI's government that the Patriot cause was viable, prompting formal French entry into the war. Name this decisive turning point.",
+            answer: "Battle of Saratoga",
+            aliases: ["saratoga", "battles of saratoga", "siege of saratoga"],
+            explanation: "Burgoyne's surrender at Saratoga in October 1777 convinced France to sign the 1778 Treaty of Alliance with the United States."
+          },
+          bonus: {
+            prompt: "Following the American victory at Saratoga, which American diplomat and polymath—already famous across Europe for his electrical experiments and witty aphorisms—served as minister to France in Paris and helped negotiate the crucial 1778 Franco-American alliance?",
+            answer: "Benjamin Franklin",
+            aliases: ["franklin", "ben franklin"],
+            explanation: "Benjamin Franklin's diplomatic skill and popularity at the French court proved instrumental in securing military and financial backing."
+          }
+        },
+        {
+          id: "p1-q2-4",
+          number: 4,
+          category: "Ancient Mediterranean",
+          tossup: {
+            text: "Rising high above the rocky limestone plateau of the Athenian Acropolis on the site of an earlier temple destroyed during the Persian invasions, this monumental marble structure was built between 447 and 432 BCE during the height of Athens's imperial prosperity under Pericles. Architects Iktinos and Kallikrates employed subtle optical refinements—including slight upward curvature of the stylobate and entasis in the Doric columns—while Phidias supervised sculptural reliefs such as the Panathenaic frieze and a towering gold-and-ivory cult statue of the city's patron goddess. Later serving as a Christian church, an Ottoman mosque, and a gunpowder magazine damaged during a 1687 Venetian bombardment, name this iconic temple.",
+            answer: "Parthenon",
+            aliases: ["the parthenon"],
+            explanation: "Dedicated to Athena Parthenos and completed in 432 BCE, the Parthenon remains the defining monument of Classical Greek architecture."
+          },
+          bonus: {
+            prompt: "The ambitious building program on the Athenian Acropolis drew heavily on funds from what fifth-century BCE Athenian-led maritime alliance, whose treasury was moved from an Aegean island to Athens in 454 BCE?",
+            answer: "Delian League",
+            aliases: ["the delian league", "confederacy of delos"],
+            explanation: "Transferring the Delian League's treasury from Delos to Athens gave Pericles the resources to fund the Parthenon and other public works."
+          }
+        },
+        {
+          id: "p1-q2-5",
+          number: 5,
+          category: "Latin American History",
+          tossup: {
+            text: "Erupting in August 1791 in the wealthiest sugar-and-coffee colony of the French Caribbean—where enslaved Africans vastly outnumbered white planters and free people of color—this upheaval began with ceremonies around Bois Caiman and leaders such as Dutty Boukman before Toussaint Louverture organized disciplined forces. Navigating shifting rivalries among revolutionary France, Spain, and invading British troops while abolishing slavery across the colony, the struggle culminated after Napoleon's attempted reimposition of slavery when Jean-Jacques Dessalines declared independence in 1804. Establishing the world's first independent Black republic and the second independent nation in the Americas, name this revolution.",
+            answer: "Haitian Revolution",
+            aliases: ["the haitian revolution", "revolution of haiti"],
+            explanation: "The Haitian Revolution (1791–1804) ended slavery in Saint-Domingue and created the independent republic of Haiti."
+          },
+          bonus: {
+            prompt: "Tricked into negotiations and arrested in 1802 by French forces under Napoleon's brother-in-law Charles Leclerc, Toussaint Louverture was deported to Europe and died in 1803 inside Fort de Joux in what mountain range along the French-Swiss border?",
+            answer: "Jura Mountains",
+            aliases: ["jura", "the jura", "the jura mountains"],
+            explanation: "Imprisoned in harsh alpine conditions at Fort de Joux in the Jura Mountains, Toussaint Louverture died in April 1803."
+          }
+        },
+        {
+          id: "p1-q2-6",
+          number: 6,
+          category: "Islamic World",
+          tossup: {
+            text: "Coming to the throne in 1520 as the tenth sultan of the Ottoman dynasty, this ruler rapidly expanded imperial reach across southeastern Europe, the eastern Mediterranean, and Mesopotamia. His forces captured Belgrade in 1521 and Rhodes from the Knights Hospitaller in 1522, crushed King Louis II's Hungarian army at Mohacs in 1526, and reached the walls of Vienna in 1529, while at home he partnered with grand mufti Ebussuud Efendi to harmonize sultanic kanun decrees with Sharia law and patronized poets, jewelers, and builders. Known as 'the Lawgiver' in the Ottoman tradition, name this sultan called 'the Magnificent' in Europe.",
+            answer: "Suleiman the Magnificent",
+            aliases: ["suleiman i", "suleiman", "suleyman the magnificent", "suleyman i", "suleiman the lawgiver", "kanuni"],
+            explanation: "Suleiman I (r. 1520–1566) presided over the territorial expansion, legal codification, and cultural brilliance of the sixteenth-century Ottoman Empire."
+          },
+          bonus: {
+            prompt: "Serving as chief court architect across the reigns of Suleiman the Magnificent and his immediate successors, which master builder designed Istanbul's Suleymaniye Mosque complex and Edirne's Selimiye Mosque?",
+            answer: "Mimar Sinan",
+            aliases: ["sinan", "koca mimar sinan agha"],
+            explanation: "Mimar Sinan transformed Ottoman architectural engineering with sweeping domes, slender minarets, and integrated charitable complexes."
+          }
+        },
+        {
+          id: "p1-q2-7",
+          number: 7,
+          category: "Cold War History",
+          tossup: {
+            text: "Following currency reform in western Germany in June 1948 and escalating Cold War tensions over the future of occupied Germany, Soviet forces halted road, rail, and barge traffic connecting the western occupation zones to West Berlin, leaving over two million residents cut off from overland supplies. Rather than yielding West Berlin or forcing an armed breakthrough along the autobahn, the United States and Britain—joined by Commonwealth aircrews—mounted a round-the-clock aerial supply bridge into Tempelhof, Gatow, and Tegel airfields. Flying coal, food, medical supplies, and even 'raisin bombers' dropping candy to children until Stalin lifted the blockade in May 1949, name this operation.",
+            answer: "Berlin Airlift",
+            aliases: ["the berlin airlift", "operation vittles", "berlin blockade and airlift"],
+            explanation: "The Berlin Airlift (June 1948–May 1949) sustained West Berlin by air and became a defining early triumph of Cold War containment."
+          },
+          bonus: {
+            prompt: "Amid the deepening Cold War division of Europe highlighted by the Berlin crisis, twelve Western nations signed the North Atlantic Treaty in Washington in April 1949 to form what collective security alliance?",
+            answer: "NATO",
+            aliases: ["north atlantic treaty organization", "the north atlantic treaty organization"],
+            explanation: "NATO established a collective defense commitment among North American and Western European members."
+          }
+        },
+        {
+          id: "p1-q2-8",
+          number: 8,
+          category: "Science & Exploration",
+          tossup: {
+            text: "Sailing under the Spanish crown in September 1519 with five caravels and roughly 270 men after earlier serving Portuguese interests in the Indian Ocean and Malacca, this navigator quelled mutiny along the Patagonian coast before guiding three remaining ships through a tortuous southern passage into a calm ocean he called Mar Pacifico. After a grueling transpacific crossing that exhausted food and water stores and brought scurvy to his crew, he reached the Philippine archipelago in 1521 but was killed in April during a clash on Mactan Island while backing a local ruler. Name this expedition leader.",
+            answer: "Ferdinand Magellan",
+            aliases: ["magellan", "fernao de magalhaes"],
+            explanation: "Ferdinand Magellan initiated the first expedition to sail around the globe, discovering the strait bearing his name and crossing the Pacific."
+          },
+          bonus: {
+            prompt: "After Magellan's death in the Philippines and the loss of other vessels in the Spice Islands, which navigator commanded the sole surviving ship, the Victoria, across the Indian Ocean and around the Cape of Good Hope to complete the circumnavigation in 1522?",
+            answer: "Juan Sebastian Elcano",
+            aliases: ["elcano", "juan sebastian de elcano", "del cano"],
+            explanation: "Juan Sebastian Elcano guided the Victoria back to Spain in September 1522 with eighteen survivors aboard."
+          }
+        }
+      ],
+      q3Categories: [
+        {
+          id: "p1-treaties",
+          title: "Treaties & Truces",
+          subtitle: "Landmark peace settlements, pacts, and diplomatic partitions across world history",
+          badge: "Diplomacy",
+          questions: [
+            { id: "p1-q3-tr-1", prompt: "Signed in June 1919 in the Hall of Mirrors, what treaty placed war guilt on Germany and imposed heavy reparations after World War I?", answer: "Treaty of Versailles", aliases: ["versailles", "versailles treaty"] },
+            { id: "p1-q3-tr-2", prompt: "Brokering a line of demarcation 370 leagues west of Cape Verde in 1494, what treaty divided newly encountered lands between Spain and Portugal?", answer: "Treaty of Tordesillas", aliases: ["tordesillas"] },
+            { id: "p1-q3-tr-3", prompt: "Signed in March 1918, what treaty took Bolshevik Russia out of World War I and ceded vast western territories to the Central Powers?", answer: "Treaty of Brest-Litovsk", aliases: ["brest-litovsk", "brest litovsk"] },
+            { id: "p1-q3-tr-4", prompt: "Concluded in September 1905 with mediation by Theodore Roosevelt, what treaty ended the Russo-Japanese War?", answer: "Treaty of Portsmouth", aliases: ["portsmouth"] },
+            { id: "p1-q3-tr-5", prompt: "Signed in 1814, what agreement ended the War of 1812 between the United States and Britain on the basis of status quo ante bellum?", answer: "Treaty of Ghent", aliases: ["ghent"] },
+            { id: "p1-q3-tr-6", prompt: "In what 1938 agreement did Britain and France permit Nazi Germany to annex Czechoslovakia's Sudetenland?", answer: "Munich Agreement", aliases: ["munich pact", "munich conference", "treaty of munich"] },
+            { id: "p1-q3-tr-7", prompt: "Signed in 1648, what series of treaties ended the Thirty Years' War and recognized Dutch and Swiss independence?", answer: "Peace of Westphalia", aliases: ["treaty of westphalia", "westphalia", "treaties of westphalia"] },
+            { id: "p1-q3-tr-8", prompt: "What 1978 diplomatic framework mediated by Jimmy Carter led to the 1979 peace treaty between Egypt and Israel?", answer: "Camp David Accords", aliases: ["camp david", "camp david agreement"] }
+          ]
+        },
+        {
+          id: "p1-revolutions19",
+          title: "Revolutions of the 19th Century",
+          subtitle: "Nationalist uprisings, liberal revolts, and social upheavals from 1800 to 1899",
+          badge: "1800–1899",
+          questions: [
+            { id: "p1-q3-rv-1", prompt: "What 1830 French uprising overthrew King Charles X and placed the 'Citizen King' Louis Philippe on the throne?", answer: "July Revolution", aliases: ["french revolution of 1830", "1830 revolution", "three glorious days", "trois glorieuses"] },
+            { id: "p1-q3-rv-2", prompt: "Which Italian nationalist led the 'Expedition of the Thousand' Redshirts in 1860 to conquer Sicily and Naples?", answer: "Giuseppe Garibaldi", aliases: ["garibaldi"] },
+            { id: "p1-q3-rv-3", prompt: "What massive mid-nineteenth-century Chinese civil war was led by Hong Xiuquan, who claimed to be the younger brother of Jesus?", answer: "Taiping Rebellion", aliases: ["taiping heavenly kingdom", "taiping civil war"] },
+            { id: "p1-q3-rv-4", prompt: "In 1825, what group of Russian army officers staged an unsuccessful revolt in St. Petersburg against Tsar Nicholas I's accession?", answer: "Decembrists", aliases: ["decembrist revolt", "decembrist uprising"] },
+            { id: "p1-q3-rv-5", prompt: "What radical socialist municipal government ruled Paris from March to May 1871 following France's defeat in the Franco-Prussian War?", answer: "Paris Commune", aliases: ["the paris commune", "commune of paris"] },
+            { id: "p1-q3-rv-6", prompt: "Which Venezuelan liberator won the Battle of Boyaca in 1819 and served as president of Gran Colombia?", answer: "Simon Bolivar", aliases: ["bolivar", "el libertador"] },
+            { id: "p1-q3-rv-7", prompt: "What 1868 revolution overthrew the Tokugawa shogunate and restored direct imperial rule in Japan?", answer: "Meiji Restoration", aliases: ["meiji", "meiji revolution"] },
+            { id: "p1-q3-rv-8", prompt: "Which Hungarian nationalist leader championed Hungary's 1848–1849 independence struggle against Habsburg rule?", answer: "Lajos Kossuth", aliases: ["kossuth", "louis kossuth"] }
+          ]
+        },
+        {
+          id: "p1-capitals",
+          title: "Ancient Empires & Capitals",
+          subtitle: "Imperial metropolises, citadels, and ceremonial centers of the ancient world",
+          badge: "Antiquity",
+          questions: [
+            { id: "p1-q3-cp-1", prompt: "Founded by Constantine the Great on the Bosporus in 330 CE, what city served as the capital of the Byzantine Empire?", answer: "Constantinople", aliases: ["byzantium", "new rome", "nova roma"] },
+            { id: "p1-q3-cp-2", prompt: "What ceremonial capital of the Achaemenid Persian Empire was burned by Alexander the Great in 330 BCE?", answer: "Persepolis", aliases: ["parsa", "takht-e jamshid"] },
+            { id: "p1-q3-cp-3", prompt: "Located on an island in Lake Texcoco, what city served as the capital of the Aztec Empire?", answer: "Tenochtitlan", aliases: ["mexico-tenochtitlan"] },
+            { id: "p1-q3-cp-4", prompt: "Known in Quechua as the 'navel of the world,' what Andean city was the capital of the Inca Empire?", answer: "Cusco", aliases: ["cuzco", "qosqo"] },
+            { id: "p1-q3-cp-5", prompt: "Located on the Tigris River in northern Mesopotamia, what city was the final capital of the Neo-Assyrian Empire and home to Ashurbanipal's library?", answer: "Nineveh", aliases: ["ninua"] },
+            { id: "p1-q3-cp-6", prompt: "Standing near the First Cataract of the Nile, what southern Egyptian city was the capital of the New Kingdom during the 18th Dynasty?", answer: "Thebes", aliases: ["waset", "luxor"] },
+            { id: "p1-q3-cp-7", prompt: "Located near modern Xi'an, what city served as the capital of both the Western Han and Tang dynasties?", answer: "Chang'an", aliases: ["changan", "chang an", "xian", "xi'an"] },
+            { id: "p1-q3-cp-8", prompt: "Founded by Phoenician settlers from Tyre on the Tunisian coast, what North African city rivaled Rome in the Punic Wars?", answer: "Carthage", aliases: ["qart-hadasht"] }
+          ]
+        }
+      ],
+      q4Tossups: [
+        {
+          id: "p1-q4-1",
+          number: 1,
+          category: "Modern European & Military History",
+          text: "To mislead German high command into keeping strong reserves in northern France and Norway after the Allied liberation of Rome, planners staged Operation Fortitude—using double agents, fake radio traffic, decoy landing craft, and a notional First U.S. Army Group ostensibly under George S. Patton aimed at the Pas-de-Calais. Weather forecasts by meteorologist James Stagg prompted Dwight D. Eisenhower to postpone the assault by twenty-four hours before paratroopers and glider infantry dropped behind coastal defenses and engineers built prefabricated Mulberry harbors to land heavy armor and supplies. On the morning of June 6, 1944, troops from the United States, Britain, Canada, and allied nations hit five beaches codenamed Utah, Omaha, Gold, Juno, and Sword along the Cotentin and Calvados coasts. Name this amphibious invasion that opened the Western Front in Normandy.",
+          answer: "D-Day",
+          aliases: ["normandy landings", "invasion of normandy", "operation overlord", "battle of normandy", "normandy invasion", "d day"],
+          explanation: "30-pt clue: Operation Fortitude deception and notional FUSAG threat; 20-pt clue: Stagg's weather forecast, airborne drops, and Mulberry harbors; 10-pt clue: June 6, 1944 landings at Omaha, Utah, Gold, Juno, and Sword."
+        },
+        {
+          id: "p1-q4-2",
+          number: 2,
+          category: "Early Modern Asia",
+          text: "Following years of civil war among rival daimyo lords during the Sengoku era and the decisive October 1600 victory at Sekigahara, this family established a durable military dictatorship centered at Edo while leaving the imperial court largely ceremonial in Kyoto. The regime cemented stability through bakuhan governance, strict social status divisions of samurai, peasants, artisans, and merchants, and the sankin-kotai system requiring regional lords to alternate residence between their domains and Edo while leaving family hostages behind. Enforcing maritime restrictions known as sakoku that curtailed foreign contact and confined Dutch and Chinese merchants to Nagasaki's artificial island of Dejima, name this shogunate that ruled Japan until the 1868 Meiji Restoration.",
+          answer: "Tokugawa Shogunate",
+          aliases: ["tokugawa", "edo shogunate", "edo period", "tokugawa bakufu"],
+          explanation: "30-pt clue: Sekigahara victory, bakuhan order, and sankin-kotai alternate attendance; 20-pt clue: Sakoku seclusion policy and Dejima trading post; 10-pt clue: Shogunate based in Edo founded by Tokugawa Ieyasu."
+        },
+        {
+          id: "p1-q4-3",
+          number: 3,
+          category: "Ancient Rome",
+          text: "Having first risen to prominence fighting for Sulla in Sicily and Africa and celebrating an irregular triumph while still an equestrian, this Roman commander received extraordinary sweeping imperium under the Lex Gabinia in 67 BCE to sweep Cilician pirates from the Mediterranean in under three months. Subsequent eastern campaigns dissolved the remnants of the Seleucid kingdom, annexed Syria and Judea—where he entered the Temple's Holy of Holies in Jerusalem—and brought vast wealth and client kings into Rome's orbit. Forming an informal political alliance with Julius Caesar and Marcus Licinius Crassus that the Senate opposed, he broke with Caesar after Crassus's death at Carrhae, lost the decisive battle of Pharsalus in 48 BCE, and was murdered upon landing in Egypt. Name this Roman general honored with the cognomen 'Magnus,' or 'the Great.'",
+          answer: "Pompey",
+          aliases: ["pompey the great", "gnaeus pompeius magnus", "pompeius"],
+          explanation: "30-pt clue: Lex Gabinia pirate campaign and eastern conquests including Jerusalem; 20-pt clue: Alliance with Caesar and Crassus in the First Triumvirate; 10-pt clue: Defeated at Pharsalus and assassinated in Egypt."
+        },
+        {
+          id: "p1-q4-4",
+          number: 4,
+          category: "Sub-Saharan Africa",
+          text: "In southeastern Africa during the late eighteenth and early nineteenth centuries, competition over cattle pastures, trade routes, and ecological stress fueled widespread migrations and state formation known as the Mfecane, or crushing. Transforming formerly loose regional chiefdoms into a centralized, expansionist military state, this kingdom drilled age-grade regiments called impis, replaced long throwing assegais with the heavier close-quarters stabbing spear known as the iklwa, and deployed the 'bull horn' flanking formation to encircle opponents. Decades later, in January 1879, King Cetshwayo's forces famously overran a British column at the Battle of Isandlwana before facing a stubborn defense at Rorke's Drift. Name this southern African kingdom originally forged by Shaka.",
+          answer: "Zulu Kingdom",
+          aliases: ["zulu", "zulu empire", "zulus"],
+          explanation: "30-pt clue: Mfecane upheavals, impis, iklwa spear, and bull-horn tactics; 20-pt clue: 1879 battles at Isandlwana and Rorke's Drift; 10-pt clue: Southern African kingdom founded by Shaka Zulu."
+        },
+        {
+          id: "p1-q4-5",
+          number: 5,
+          category: "Science & Intellectual History",
+          text: "Originally invited as a gentleman companion to Captain Robert FitzRoy during a five-year hydrographic expedition charting South American coasts and ocean currents, this young naturalist spent months inland observing pampas fossils, earthquake uplift in Chile, and marine shells high in the Andes. Returning to England in 1836, he carefully analyzed specimen notes—including beak shapes among mockingbirds and finches from the Galapagos archipelago—and developed a mechanism of natural selection while delaying publication for over twenty years. Spurring him to co-present a paper and rush his book into print in 1859 after receiving a manuscript outlining a similar idea from Alfred Russel Wallace, name this English naturalist who authored On the Origin of Species.",
+          answer: "Charles Darwin",
+          aliases: ["darwin"],
+          explanation: "30-pt clue: Five-year voyage with Robert FitzRoy and Andean/Chilean geological observations; 20-pt clue: Galapagos finches and Alfred Russel Wallace's 1858 letter; 10-pt clue: 1859 book On the Origin of Species."
+        },
+        {
+          id: "p1-q4-6",
+          number: 6,
+          category: "French Revolution & Napoleon",
+          text: "Emerging in the summer of 1789 after the Third Estate declared itself the National Assembly, took the Tennis Court Oath, and saw the Bastille fall in Paris, deputies sought a clear statement of civic principles to preface a new French constitution. Drafted with major contributions from the Abbe Sieyes and the Marquis de Lafayette—who drew inspiration from Enlightenment thought and American declarations after consulting with Thomas Jefferson—the text affirmed liberty, property, security, resistance to oppression, and freedom of expression while declaring that the principle of all sovereignty resides essentially in the nation. Adopted in late August 1789, name this foundational revolutionary document.",
+          answer: "Declaration of the Rights of Man and of the Citizen",
+          aliases: ["declaration of the rights of man", "rights of man and of the citizen", "declaration of the rights of man and citizen"],
+          explanation: "30-pt clue: Sieyes, Lafayette, and Jefferson's counsel after the Tennis Court Oath; 20-pt clue: Equal rights, legal protections, and national sovereignty; 10-pt clue: August 1789 French Revolution charter."
+        },
+        {
+          id: "p1-q4-7",
+          number: 7,
+          category: "Postwar Global History",
+          text: "Building on earlier colonial-era pass laws and racial hierarchies, South Africa's ruling National Party under Prime Minister D. F. Malan institutionalized comprehensive racial separation after winning power in 1948. Statutes such as the Population Registration Act, the Group Areas Act, the Bantu Authorities Act, and strict bans on mixed marriages and political opposition forced millions of Black, Coloured, and Indian South Africans into segregated townships or nominally self-governing 'Bantustan' homelands while reserving parliamentary power for the white minority. Facing internal resistance from the ANC, UDF, and trade unions alongside international sanctions and divestment before negotiations in the early 1990s, name this system whose Afrikaans name literally means 'apartness.'",
+          answer: "Apartheid",
+          aliases: ["apartheid system"],
+          explanation: "30-pt clue: D. F. Malan's 1948 National Party victory and pass/marriage laws; 20-pt clue: Group Areas Act and Bantustan homelands; 10-pt clue: South African racial segregation policy meaning 'apartness.'"
+        },
+        {
+          id: "p1-q4-8",
+          number: 8,
+          category: "Ancient China",
+          text: "Overcoming six rival Warring States by 221 BCE through centralized administrative reforms, meritocratic military promotion, and Legalist statecraft championed by chancellor Li Si, the ruler of Qin rejected traditional royal titles and coined a new supreme title combining 'august' and 'sovereign.' His government standardized Chinese script into the Small Seal style, mandated uniform cart axle widths, weights, measures, and bronze coinage, divided the realm into commanderies, and linked northern frontier walls to guard against Xiongnu raids. Famous for ordering the burning of rival philosophical texts and burying scholars alive while constructing an elaborate mausoleum near Mount Li guarded by thousands of life-sized Terracotta Warriors, name this first emperor of a unified China.",
+          answer: "Qin Shi Huang",
+          aliases: ["shi huangdi", "qin shihuang", "first emperor of china", "ying zheng"],
+          explanation: "30-pt clue: Conquest of Warring States by 221 BCE and Legalist chancellor Li Si; 20-pt clue: Standardized script, coinage, axle widths, and northern walls; 10-pt clue: Terracotta Army and first emperor of unified China."
+        }
+      ]
+    };
+
+    // Imported IHBB Asian Championships Bowl/Bee Set (Round 4, Round 5, Round 6, Round 8, 2021 Rd 5, Alpha Rd 7, Beta Bee Rd 2, Beta Bowl Rd 4)
+    const PACKET_IHBB_ASIA_CHAMPIONSHIPS = {
+      id: "pkt-ihbb-asia-champs",
+      title: "IHBB Asian Championships Set (Rds 4–8 & Alpha/Beta)",
+      focus: "IHBB Asian Championships · Bowl & Bee Rounds",
+      isAi: false,
+      q1Tossups: [
+        {
+          id: "asia-q1-1",
+          number: 1,
+          category: "Soviet & Cold War History",
+          text: "This man shared power with Alexander Kosygin in the early years of his leadership, and his poor economic planning led to the beginning of the Era of Stagnation. This leader joined Jimmy Carter in signing the SALT II accords. He justified military intervention to protect communism in a namesake doctrine. For ten points, name this Soviet General Secretary who succeeded Khrushchev.",
+          answer: "Leonid Brezhnev",
+          aliases: ["brezhnev"],
+          explanation: "Leonid Brezhnev led the USSR from 1964 to 1982, presiding over the Brezhnev Doctrine, SALT II, and the Era of Stagnation."
+        },
+        {
+          id: "asia-q1-2",
+          number: 2,
+          category: "Ancient & Late Antiquity",
+          text: "A campaign against these people began when Galerius was told that their existence prevented the Oracle at Delphi from speaking. The catacombs of Rome were predominantly used for the burial of these people. Though these people suffered the Diocletian Persecution and Nero blamed them for causing the Great Fire, they were eventually granted legal status in the 313 AD Edict of Milan. For ten points, name these followers of a monotheistic faith adopted by Constantine the Great.",
+          answer: "Christians",
+          aliases: ["christianity", "christians"],
+          explanation: "Constantine's 313 CE Edict of Milan legalized Christianity across the Roman Empire."
+        },
+        {
+          id: "asia-q1-3",
+          number: 3,
+          category: "European History & Culture",
+          text: "A theme in Mozart's twenty-fifth piano concerto is sometimes cited as this song's source. Pyotr Lavrov wrote a 'worker's' version of this song, which was originally written by Claude Rouget de Lisle as 'War Song for the Rhine Army.' A musical depiction of the Battle of Borodino juxtaposes this song with 'God Save The Tsar.' This song was quoted in Tchaikovsky's 1812 Overture, where it represents Napoleon's army. For ten points, name this revolutionary song, the national anthem of France.",
+          answer: "La Marseillaise",
+          aliases: ["marseillaise", "french national anthem"],
+          explanation: "Composed in 1792 by Claude Rouget de Lisle, La Marseillaise became France's national anthem."
+        },
+        {
+          id: "asia-q1-4",
+          number: 4,
+          category: "History of Technology & Accessibility",
+          text: "This system was an improvement upon one developed for Napoleon's army by Charles Barbier; that system was night writing. The Grade 2 variety is the most commonly used English type of this system, which was developed by a man who suffered an accident with an awl as a child. For ten points, name this writing system of raised dots used by the blind.",
+          answer: "Braille",
+          aliases: ["braille writing"],
+          explanation: "Louis Braille adapted tactile dot patterns into the Braille system used by blind and visually impaired readers."
+        },
+        {
+          id: "asia-q1-5",
+          number: 5,
+          category: "World War II Pacific",
+          text: "This organization built a fortress at Rabaul and was the target of the Great Turkey Shoot. This military force defeated Force Z, consisting of the Prince of Wales and the Repulse, which had been sent to reinforce Malaya. Its forces were concentrated in the Combined Fleet, which suffered the loss of four aircraft carriers at the Battle of Midway. For ten points, name this military force that fought America in the Pacific Ocean during World War II.",
+          answer: "Imperial Japanese Navy",
+          aliases: ["ijn", "combined fleet", "japanese navy"],
+          explanation: "The Imperial Japanese Navy operated the Combined Fleet in the Pacific during World War II."
+        },
+        {
+          id: "asia-q1-6",
+          number: 6,
+          category: "Modern European History",
+          text: "An attempt at this process, the Erfurt Union, failed due to the Agreement of Olmutz, which revived an older attempt at this process. A step in this process was the formation of the Zollverein customs union. During the revolutions of 1848, a parliament at Frankfurt sought to perform this action, offering the crown to the King of Prussia. For ten points, name this process of forming a new country governed from Berlin.",
+          answer: "German unification",
+          aliases: ["unification of germany", "german reunification"],
+          explanation: "Building on the Zollverein and 1848 efforts, German unification was completed in 1871."
+        },
+        {
+          id: "asia-q1-7",
+          number: 7,
+          category: "Cold War & Vietnam War",
+          text: "A film about one of these locations could not be made when James Stockdale tried to commit suicide to stop production. The Blueboy assault team purposefully crashed a helicopter to put Green Berets in range of one of these locations during Operation Ivory Coast. After his A-4E Skyhawk was shot down, John McCain was transported to the most famous of these locations known as Hoa Lo, or the Hanoi Hilton. For ten points, name these entities used by the North Vietnamese to hold captured American troops.",
+          answer: "Vietnamese prisoner of war camps",
+          aliases: ["pow camps", "prisoner of war camps", "hoa lo", "hanoi hilton"],
+          explanation: "Hoa Lo Prison in Hanoi was infamously known to American prisoners of war as the 'Hanoi Hilton.'"
+        },
+        {
+          id: "asia-q1-8",
+          number: 8,
+          category: "Latin American History",
+          text: "This country's Catatumbo River has more frequent lightning strikes than anywhere else on Earth. A brackish inlet in this country was home to a 1914 oil discovery and an 1823 naval battle that earned this country's independence from Spain. This country is home to the tallest waterfall in the world, Angel Falls, and the mouth of the Orinoco River. Lake Maracaibo is found in, for ten points, what South American country where a 'Bolivarian Revolution' was led by Hugo Chavez?",
+          answer: "Venezuela",
+          aliases: ["bolivarian republic of venezuela"],
+          explanation: "Venezuela features Lake Maracaibo, the Orinoco delta, Angel Falls, and the Bolivarian movement under Hugo Chavez."
+        },
+        {
+          id: "asia-q1-9",
+          number: 9,
+          category: "Medieval Middle East & Crusades",
+          text: "This man sacked the castle of Jacob's Ford after a bribe of 100,000 gold pieces to stop the castle's construction was turned down. Though this man was defeated at the Battle of Montgisard, he later formed a truce with Baldwin IV. One campaign against this man was called after his victory at Hattin, though he ended that conflict by granting Christians safe pilgrimage to Jerusalem. For ten points, name this Kurdish founder of the Ayyubid dynasty, an enemy of Richard I in the Third Crusade.",
+          answer: "Saladin",
+          aliases: ["an-nasir salah ad-din yusuf ibn ayyub", "salah al-din"],
+          explanation: "Saladin founded the Ayyubid dynasty, won at Hattin (1187), and negotiated with Richard the Lionheart in the Third Crusade."
+        },
+        {
+          id: "asia-q1-10",
+          number: 10,
+          category: "World War II Western Front",
+          text: "This man claimed that there were 400 neatly marked graves because one soldier slept. As part of Operation Fortitude, this man was assigned command of the fictitious First U.S. Army Group. This general led the breakout from Normandy and the relief of the garrison of Bastogne during the Battle of the Bulge, but was relieved of command after two slapping incidents in North Africa and Sicily. For ten points, name this aggressive commander of the American Third Army during World War II.",
+          answer: "George S. Patton Jr.",
+          aliases: ["george patton", "patton", "general patton"],
+          explanation: "General George S. Patton commanded the U.S. Third Army during the Normandy breakout and the Battle of the Bulge."
+        }
+      ],
+      q2Pairs: [
+        {
+          id: "asia-q2-1",
+          number: 1,
+          category: "Modern South Atlantic & British History",
+          tossup: {
+            text: "An early action during this conflict was the capture of Government House in Stanley. This conflict began on the orders of Leopoldo Galtieri, who lost power as a result. During this war, Exocet missiles were able to destroy the Sheffield, and the Conqueror was able to sink the General Belgrano. This war's outcome hastened the fall of a military junta while strengthening Margaret Thatcher's government. For ten points, name this 1982 war between Argentina and Britain over a South Atlantic archipelago.",
+            answer: "Falklands War",
+            aliases: ["falkland islands war", "malvinas war"],
+            explanation: "Fought in spring 1982, the Falklands War ended with British retaking of the islands and the collapse of Argentina's military junta."
+          },
+          bonus: {
+            prompt: "The Falklands War featured one of the few post-World War II sinkings by a nuclear-powered vessel of what type—specifically HMS Conqueror sinking the cruiser ARA General Belgrano?",
+            answer: "Submarine",
+            aliases: ["nuclear submarine", "submarines"],
+            explanation: "HMS Conqueror, a nuclear-powered attack submarine, torpedoed the ARA General Belgrano during the 1982 conflict."
+          }
+        },
+        {
+          id: "asia-q2-2",
+          number: 2,
+          category: "Ancient Rome & Gaul",
+          tossup: {
+            text: "A tribe of these people called the Senones marched on Rome, demanding that Quintus Fabius be handed over; when he wasn't, these people won the Battle of the Allia, then cheated the losers with weighted scales for measuring tribute. A chieftain of the Arverni tribe of these people led a massive rebellion of these people until his defeat at the Siege of Alesia. For ten points, name these people, the Celtic inhabitants of modern-day France during Roman times.",
+            answer: "Gauls",
+            aliases: ["gaul", "celts"],
+            explanation: "Gallic tribes sacked Rome after the Allia (c. 390 BCE) and later mounted a major pan-Gallic revolt against Julius Caesar."
+          },
+          bonus: {
+            prompt: "This aforementioned Arverni chieftain won the Battle of Gergovia against Julius Caesar, but was paraded through Rome and executed by Caesar after he lost at Alesia.",
+            answer: "Vercingetorix",
+            aliases: ["vercingetorix of the arverni"],
+            explanation: "Vercingetorix united Gallic tribes in 52 BCE before surrendering after the Siege of Alesia."
+          }
+        },
+        {
+          id: "asia-q2-3",
+          number: 3,
+          category: "Classical & Egyptian Architecture",
+          tossup: {
+            text: "Sculptures of caryatids were used in place of these structures in the Erechtheion on the Athenian acropolis. A temple at Karnak includes enormous examples of these structures decorated with hieroglyphs in its hypostyle courtyard. Their capitals can be decorated with various objects, including acanthus leaves on the top of the Corinthian type. For ten points, name these vertical architectural elements that often bear the weight of a roof or entablature.",
+            answer: "Columns",
+            aliases: ["column", "pillars"],
+            explanation: "Columns in Egyptian hypostyle halls and Greek temples support roofs and exhibit distinct capital styles."
+          },
+          bonus: {
+            prompt: "Corinthian columns are the most ornate of the three classical Greek orders; which simplest of the three was characterized by plain capitals, a sturdy profile, and no base?",
+            answer: "Doric order",
+            aliases: ["doric", "doric column"],
+            explanation: "The Doric order is the earliest and most austere of the three classical Greek architectural orders."
+          }
+        },
+        {
+          id: "asia-q2-4",
+          number: 4,
+          category: "U.S. Industrial History",
+          tossup: {
+            text: "This man's reputation suffered when two dozen miners were killed in a firefight at his Ludlow colony. Charles Pratt and Henry Rogers decided to work with this man after their companies were priced out in the 'Cleveland Massacre.' When this man's monopoly was found to be in violation of the Sherman Antitrust Act, it was split into companies that became Exxon and Mobil. For ten points, name this industrialist, the founder of the Standard Oil Company.",
+            answer: "John D. Rockefeller",
+            aliases: ["john davison rockefeller", "rockefeller"],
+            explanation: "John D. Rockefeller built Standard Oil into a dominant petroleum trust before the 1911 Supreme Court antitrust breakup."
+          },
+          bonus: {
+            prompt: "Which other wealthy titan of American industry dominated steel production and is the namesake of both a university in Pittsburgh and a famous concert hall in New York?",
+            answer: "Andrew Carnegie",
+            aliases: ["carnegie"],
+            explanation: "Andrew Carnegie built Carnegie Steel and endowed libraries, Carnegie Hall, and Carnegie Mellon University."
+          }
+        },
+        {
+          id: "asia-q2-5",
+          number: 5,
+          category: "19th-Century British Politics",
+          tossup: {
+            text: "This politician supported Lord Derby's attempts to pass a Reform Act prohibiting rotten boroughs. This leader's foreign policies included buying out the Suez Canal Company and ordering a failed invasion of Afghanistan as part of the Great Game with Russia. This politician was a favorite of Queen Victoria and had her crowned as Empress of India. For ten points, name this Conservative prime minister of Great Britain and rival of William Gladstone.",
+            answer: "Benjamin Disraeli",
+            aliases: ["disraeli"],
+            explanation: "Benjamin Disraeli served as Conservative prime minister and championed imperial policies such as acquiring shares in the Suez Canal."
+          },
+          bonus: {
+            prompt: "Disraeli began his political career as a supporter of this prominent Conservative prime minister, before opposing him over the repeal of the Corn Laws; this statesman also created London's modern police force.",
+            answer: "Sir Robert Peel",
+            aliases: ["robert peel", "peel"],
+            explanation: "Sir Robert Peel established the Metropolitan Police ('Bobbies') and repealed the Corn Laws in 1846."
+          }
+        },
+        {
+          id: "asia-q2-6",
+          number: 6,
+          category: "Medieval & Early Modern Europe",
+          tossup: {
+            text: "A man undergoing this event was told, 'Play the man, Master Ridley.' Many people who were suspected of holding 'Thyestean banquets' endured this action, to which Pierre de Lancre subjected many Basques. Carbon monoxide poisoning was a common fate for subjects of this action. A military commander who successfully lifted the Siege of Orleans died via, for ten points, what method of execution for Joan of Arc?",
+            answer: "Burning at the stake",
+            aliases: ["burned at the stake", "burning", "stake"],
+            explanation: "Joan of Arc was executed by burning at the stake in Rouen in 1431."
+          },
+          bonus: {
+            prompt: "This Czech religious reformer was burned at the stake in 1415 during the Council of Constance, despite Emperor Sigismund's promise of safe passage.",
+            answer: "Jan Hus",
+            aliases: ["john huss", "jan huss", "hus"],
+            explanation: "Jan Hus's execution at Constance sparked the Hussite Wars in Bohemia."
+          }
+        },
+        {
+          id: "asia-q2-7",
+          number: 7,
+          category: "German History",
+          tossup: {
+            text: "This region was united with the Palatinate by Charles Theodore and acquired new territory after the Treaty of Pressburg with Napoleon. A duchy in this region was ruled by the Wittelsbachs and led the Counter-Reformation as a bastion of Catholicism. Its 'Mad King,' Ludwig II, built Neuschwanstein castle in this region and allied with Austria against Prussia. For ten points, name this southern German state governed from Munich.",
+            answer: "Bavaria",
+            aliases: ["bayern", "state of bavaria"],
+            explanation: "Bavaria, ruled for centuries by the Wittelsbach dynasty from Munich, is Germany's largest state by area."
+          },
+          bonus: {
+            prompt: "In November 1923, Adolf Hitler attempted to launch a coup d'etat from what kind of Munich venue—giving rise to the name of the failed 'Putsch'?",
+            answer: "Beer hall",
+            aliases: ["beer hall putsch", "burgerbraukeller"],
+            explanation: "The November 1923 Beer Hall Putsch began at the Burgerbraukeller in Munich."
+          }
+        },
+        {
+          id: "asia-q2-8",
+          number: 8,
+          category: "Latin American & Cold War History",
+          tossup: {
+            text: "An invasion of this country began shortly after Robert Paz was shot on his way to dinner in the El Chorrillo neighborhood. Loud rock music was used to flush a leader of this country out of the Vatican embassy, where he had taken refuge. In an attempt to stop drug trafficking in this country, George H. W. Bush authorized military intervention in Operation Just Cause in 1989. For ten points, name this Central American country from which Manuel Noriega was removed from power.",
+            answer: "Panama",
+            aliases: ["republic of panama"],
+            explanation: "Operation Just Cause (December 1989) ousted General Manuel Noriega in Panama."
+          },
+          bonus: {
+            prompt: "U.S. forces famously blasted rock music outside the Vatican embassy in Panama City to pressure Noriega, including tracks by which American hard rock band whose hits include 'Welcome to the Jungle' and 'Paradise City'?",
+            answer: "Guns N' Roses",
+            aliases: ["guns and roses"],
+            explanation: "Psychological operations outside the diplomatic mission played rock tracks including songs by Guns N' Roses."
+          }
+        }
+      ],
+      q3Categories: [
+        {
+          id: "asia-q3-franklin",
+          title: "Ben Franklin",
+          subtitle: "Inventions, civic institutions, diplomacy, and founding-era roles",
+          badge: "IHBB Round 4",
+          questions: [
+            { id: "asia-q3-bf-1", prompt: "What public service did Franklin help organize in Philadelphia using bucket brigades to fight fires?", answer: "Fire department", aliases: ["fire brigade", "volunteer fire company"] },
+            { id: "asia-q3-bf-2", prompt: "What object did Franklin famously fly in a thunderstorm in his electrical experiment?", answer: "Kite", aliases: ["kite with a key"] },
+            { id: "asia-q3-bf-3", prompt: "What annual publication by Franklin featured weather forecasts, proverbs, and 'The Way to Wealth'?", answer: "Poor Richard's Almanack", aliases: ["poor richards almanac", "poor richard"] },
+            { id: "asia-q3-bf-4", prompt: "What modern Ivy League university grew out of the Academy and College of Philadelphia co-founded by Franklin?", answer: "University of Pennsylvania", aliases: ["upenn", "penn"] },
+            { id: "asia-q3-bf-5", prompt: "What fish did Franklin write about giving up vegetarianism for—and shares its name with 20th-century UK-Iceland disputes?", answer: "Cod", aliases: ["codfish"] },
+            { id: "asia-q3-bf-6", prompt: "Which U.S. state had Franklin's son William Franklin as its last colonial royal governor?", answer: "New Jersey", aliases: ["nj"] },
+            { id: "asia-q3-bf-7", prompt: "At which body did Franklin serve on the Committee of Five that drafted the Declaration of Independence?", answer: "Second Continental Congress", aliases: ["continental congress"] },
+            { id: "asia-q3-bf-8", prompt: "To which country did Franklin travel as an American diplomat and emissary during the Revolutionary War?", answer: "France", aliases: ["kingdom of france"] }
+          ]
+        },
+        {
+          id: "asia-q3-justinian",
+          title: "Justinian the Great",
+          subtitle: "Byzantine statecraft, reconquests, law, and court figures",
+          badge: "IHBB Round 4",
+          questions: [
+            { id: "asia-q3-js-1", prompt: "Which empire, continuing the Eastern Roman Empire, did Justinian rule in the sixth century CE?", answer: "Byzantine Empire", aliases: ["byzantium", "eastern roman empire"] },
+            { id: "asia-q3-js-2", prompt: "Which head of the Western Church did Justinian exert strong imperial influence over in Rome?", answer: "Pope", aliases: ["bishop of rome", "the pope"] },
+            { id: "asia-q3-js-3", prompt: "Which great domed church in Constantinople did Justinian rebuild after the Nika riots?", answer: "Hagia Sophia", aliases: ["ayasofya"] },
+            { id: "asia-q3-js-4", prompt: "Which North African city did Justinian's forces reconquer from the Vandals?", answer: "Carthage", aliases: ["carthago"] },
+            { id: "asia-q3-js-5", prompt: "What 532 CE chariot-race riots in Constantinople nearly toppled Justinian's throne?", answer: "Nika Riots", aliases: ["nika revolt", "nika"] },
+            { id: "asia-q3-js-6", prompt: "Which rival empire ruled by the Sassanids fought repeated wars with Justinian's Byzantium?", answer: "Sassanid Empire", aliases: ["persia", "sasanian empire", "persian empire"] },
+            { id: "asia-q3-js-7", prompt: "Who was Justinian's influential empress and former actress who bolstered his resolve during the Nika crisis?", answer: "Theodora", aliases: ["empress theodora"] },
+            { id: "asia-q3-js-8", prompt: "Which celebrated general led Justinian's campaigns in North Africa and Italy?", answer: "Belisarius", aliases: ["flavius belisarius"] }
+          ]
+        },
+        {
+          id: "asia-q3-hk",
+          title: "Hong Kong",
+          subtitle: "Geography, colonial history, economy, and modern movements",
+          badge: "IHBB Round 4",
+          questions: [
+            { id: "asia-q3-hk-1", prompt: "Which country exercises sovereignty over the Hong Kong Special Administrative Region?", answer: "People's Republic of China", aliases: ["china", "prc"] },
+            { id: "asia-q3-hk-2", prompt: "Which country leased the New Territories and acquired Hong Kong Island during the Qing dynasty?", answer: "United Kingdom", aliases: ["uk", "britain", "great britain"] },
+            { id: "asia-q3-hk-3", prompt: "Which mid-19th-century conflicts between Britain and Qing China led to the cession of Hong Kong?", answer: "Opium Wars", aliases: ["first opium war", "opium war"] },
+            { id: "asia-q3-hk-4", prompt: "What 2014 Hong Kong pro-democracy protest movement took its name from items used against rain and pepper spray?", answer: "Umbrella Movement", aliases: ["umbrella revolution", "occupy central"] },
+            { id: "asia-q3-hk-5", prompt: "Which nearby former Portuguese territory is also a Special Administrative Region of China?", answer: "Macau", aliases: ["macao"] },
+            { id: "asia-q3-hk-6", prompt: "Alongside Taiwan, Singapore, and South Korea, Hong Kong is grouped among the Four Asian what?", answer: "Asian Tigers", aliases: ["four asian tigers", "tigers"] },
+            { id: "asia-q3-hk-7", prompt: "What famously dense, largely ungoverned settlement in Kowloon was demolished in the early 1990s?", answer: "Kowloon Walled City", aliases: ["walled city"] },
+            { id: "asia-q3-hk-8", prompt: "Which mainland city directly borders Hong Kong and became China's first Special Economic Zone?", answer: "Shenzhen", aliases: ["shenzhen sez"] }
+          ]
+        }
+      ],
+      q4Tossups: [
+        {
+          id: "asia-q4-1",
+          number: 1,
+          category: "Early U.S. Presidency & Political Thought",
+          text: "One work by this man claims that religion is necessary to support political prosperity and notes that 'the jealousy of a free people ought to be constantly awake against the insidious wiles of foreign influence.' Drawing an analogy between the interdependence of north and south as well as east and west, he argued that decisions must be made as one united nation rather than sectional factions. He cautioned strongly against entangling alliances with European powers and warned of the divisive dangers of entrenched political parties in his 1796 farewell address. Name this first president of the United States.",
+          answer: "George Washington",
+          aliases: ["washington"],
+          explanation: "30-pt clue: Religion and civic prosperity plus warning against foreign influence; 20-pt clue: North-south and east-west national interdependence; 10-pt clue: Farewell Address warning on parties and foreign entanglements."
+        },
+        {
+          id: "asia-q4-2",
+          number: 2,
+          category: "Early Modern European Diplomacy",
+          text: "Two answers are required. The fleets of these two powers joined forces to defeat Genoese admiral Andrea Doria off Ponza in the Mediterranean. Fears of Habsburg encirclement after Charles V's 1535 capture of Tunis led envoy Jean de la Forest to negotiate diplomatic and military alignment between these two powers. Though they later clashed in Egypt during the Battle of the Pyramids in 1798, their earlier sixteenth-century rapprochement under Francis I and Suleiman the Magnificent became known to critics as the 'Unholy Alliance.' Name these two empires.",
+          answer: "France and the Ottoman Empire",
+          aliases: ["france and ottoman empire", "ottoman empire and france", "france and ottomans"],
+          explanation: "30-pt clue: Naval action at Ponza and Habsburg rivalry; 20-pt clue: Jean de la Forest and 1536 Franco-Ottoman alignment; 10-pt clue: Clashed at the Battle of the Pyramids under Napoleon and Selim III."
+        },
+        {
+          id: "asia-q4-3",
+          number: 3,
+          category: "Ancient Roman Institutions",
+          text: "This body's decrees and records were kept near the state treasury building known as the Aerarium in the Roman Forum. A familiar obstructive tactic in this assembly involved speakers talking at length until dusk so a vote could not be taken that day. Forbidden by religious and military custom from convening more than one mile outside the sacred boundary of the pomerium, it saw Cicero denounce the Catiline Conspiracy within its walls while its measures faced potential veto by plebeian tribunes. Composed largely of former magistrates such as quaestors, aediles, praetors, and consuls, name this governing council of ancient Rome.",
+          answer: "Roman Senate",
+          aliases: ["the roman senate", "senate"],
+          explanation: "30-pt clue: Aerarium proximity and speaking until nightfall; 20-pt clue: Pomerium rule, Catiline Conspiracy, and tribunician veto; 10-pt clue: Council of Roman magistrates and statesmen."
+        },
+        {
+          id: "asia-q4-4",
+          number: 4,
+          category: "British & World War II History",
+          text: "In 1944, the liberty ship SS Richard Montgomery ran aground on a sandbar and sank near the mouth of this waterway while carrying thousands of tons of munitions. Its estuary features sea forts—such as Shivering Sands and Red Sands—designed by engineer Guy Maunsell for anti-aircraft defense during World War II. Proposals for a Thames Estuary airport near Cliffe in Kent have repeatedly debated future infrastructure along this river, which guided German bombers toward London during the Blitz. Name this major river flowing through southern England.",
+          answer: "River Thames",
+          aliases: ["thames", "the thames"],
+          explanation: "30-pt clue: SS Richard Montgomery wreck and Maunsell sea forts; 20-pt clue: Estuary airport proposals near Kent; 10-pt clue: River running through London."
+        },
+        {
+          id: "asia-q4-5",
+          number: 5,
+          category: "European Military History",
+          text: "For his rear-guard heroism during an attempt at this campaign, Marshal Michel Ney earned the title 'bravest of the brave.' An earlier campaign of this kind during the Time of Troubles included the 1610 Battle of Klushino and ended with the 1618 Truce of Deulino, while a Swedish king fled to the Ottoman Empire after the Great Frost of 1709 and Adam Lewenhaupt's defeat at Poltava. Another famous attempt in 1812 foundered on vast distances, scorched-earth tactics, Cossack harassment, and 'General Winter.' Name this daunting military campaign.",
+          answer: "Invading Russia",
+          aliases: ["invasion of russia", "russian campaign", "invading russia"],
+          explanation: "30-pt clue: Michel Ney and Polish-Muscovite campaigns like Klushino; 20-pt clue: 1709 Great Frost and Poltava; 10-pt clue: Napoleon's disastrous 1812 invasion of Russia."
+        },
+        {
+          id: "asia-q4-6",
+          number: 6,
+          category: "Economic & Medieval History",
+          text: "Thirteenth-century Douai merchant Jehan Boinebroke built wealth trading in this commodity, which Pliny the Elder noted as prized from Tarentum. King Edward I sharply raised export duties on this commodity—the 'maltolt'—to finance military campaigns in France, and the Lord Speaker's seat in the House of Lords is traditionally a woolsack symbolizing its historic weight in English commerce. Named after Worstead in Norfolk for its combed yarn weave, name this animal textile fiber.",
+          answer: "Wool",
+          aliases: ["sheep wool", "worsted wool"],
+          explanation: "30-pt clue: Jehan Boinebroke and Pliny's notes on Tarentum; 20-pt clue: Edward I's export duties and the House of Lords woolsack; 10-pt clue: Textile fiber from sheep, including worsted."
+        },
+        {
+          id: "asia-q4-7",
+          number: 7,
+          category: "Southeast Asian History",
+          text: "The Suntec City development in this city features the Fountain of Wealth, once listed as the world's largest fountain. Architect Moshe Safdie drew inspiration from a deck of cards for its three-tower Marina Bay Sands complex, while the Sarkies brothers opened a historic luxury hotel here in 1887 named for its British founder, Stamford Raffles. Achieving rapid economic growth after separating from Malaysia in 1965 under Lee Kuan Yew, name this Southeast Asian city-state.",
+          answer: "Singapore",
+          aliases: ["republic of singapore"],
+          explanation: "30-pt clue: Fountain of Wealth at Suntec City; 20-pt clue: Marina Bay Sands and Raffles Hotel; 10-pt clue: Southeast Asian island city-state founded by Raffles and led by Lee Kuan Yew."
+        },
+        {
+          id: "asia-q4-8",
+          number: 8,
+          category: "Maritime & Colonial History",
+          text: "Spanish colonizers established control over much of this archipelago after conflicts involving local sultanates like Brunei and Sulu and the Moro peoples. Across the Pacific, Manila galleons carried American silver from Acapulco westward in exchange for Chinese silk, porcelain, and spices. Ferdinand Magellan reached these islands in 1521 before dying in a skirmish on Mactan Island, and Miguel Lopez de Legazpi later anchored Spanish rule at Manila. Name this island nation.",
+          answer: "Philippines",
+          aliases: ["the philippines", "republic of the philippines", "spanish east indies"],
+          explanation: "30-pt clue: Brunei/Sulu contacts and Moro resistance; 20-pt clue: Acapulco-Manila galleon trade; 10-pt clue: Archipelago where Magellan died at Mactan and Manila is capital."
+        }
+      ]
+    };
+
+    const BUILTIN_PACKETS = [PACKET_1, PACKET_IHBB_ASIA_CHAMPIONSHIPS];
+
+    // =========================================================================
+    // 2. STATE PERSISTENCE, SEEN-QUESTION DEDUPLICATION & PACKET SYNTHESIS
+    // =========================================================================
+    const STORAGE_KEY = "ihbb_600pt_bowl_state_v3";
+    const SEEN_KEY = "ihbb_seen_prompts_v1";
+    const CUSTOM_PACKETS_KEY = "ihbb_custom_packets_v1";
+
+    function normalizeText(str) {
+      return (str || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function normalizeAnswer(str) {
+      return (str || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/['’`".,;:!?()[\]{}-]/g, " ")
+        .replace(/\b(the|a|an|of|de|di|von|van|al|el|sir|king|queen|emperor|empress|president|cardinal|saint|st)\b/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function loadSeenPrompts() {
+      try {
+        const raw = localStorage.getItem(SEEN_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveSeenPrompts(list) {
+      try {
+        localStorage.setItem(SEEN_KEY, JSON.stringify(list.slice(-500)));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+
+    function recordSeenPrompts(textsOrAnswers) {
+      const current = new Set(loadSeenPrompts());
+      textsOrAnswers.forEach((item) => {
+        const key = normalizeText(item).slice(0, 95);
+        if (key) current.add(key);
+      });
+      saveSeenPrompts(Array.from(current));
+    }
+
+    function clearSeenPrompts() {
+      try {
+        localStorage.removeItem(SEEN_KEY);
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    function loadCustomPackets() {
+      try {
+        const raw = localStorage.getItem(CUSTOM_PACKETS_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveCustomPackets(packets) {
+      try {
+        localStorage.setItem(CUSTOM_PACKETS_KEY, JSON.stringify(packets.slice(-10)));
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    function getAllPackets() {
+      return [...BUILTIN_PACKETS, ...loadCustomPackets()];
+    }
+
+    function getQuestionSignature(str) {
+      return normalizeAnswer(str).slice(0, 100);
+    }
+
+    function buildFullQuestionPool() {
+      const all = getAllPackets();
+      const q1Pool = [];
+      const q2Pool = [];
+      const q3Pool = [];
+      const q4Pool = [];
+
+      all.forEach((pkt) => {
+        (pkt.q1Tossups || []).forEach((t) => q1Pool.push({ ...t }));
+        (pkt.q2Pairs || []).forEach((p) => q2Pool.push({
+          ...p,
+          tossup: { ...p.tossup },
+          bonus: { ...p.bonus }
+        }));
+        (pkt.q3Categories || []).forEach((cat) => q3Pool.push({
+          ...cat,
+          questions: (cat.questions || []).map((q) => ({ ...q }))
+        }));
+        (pkt.q4Tossups || []).forEach((t) => q4Pool.push({ ...t }));
+      });
+
+      return { q1Pool, q2Pool, q3Pool, q4Pool };
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function selectDistinctItems(pool, neededCount, seenSet, sigFn) {
+      const shuffled = shuffleArray(pool);
+      const unseen = [];
+      const fallback = [];
+      const usedSigs = new Set();
+
+      for (const item of shuffled) {
+        const sig = sigFn(item);
+        if (!sig || usedSigs.has(sig)) continue;
+        usedSigs.add(sig);
+        if (!seenSet.has(sig)) {
+          unseen.push(item);
+        } else {
+          fallback.push(item);
+        }
+      }
+
+      return [...unseen, ...fallback].slice(0, neededCount);
+    }
+
+    // Fast, non-blocking packet synthesis from the expanded question bank
+    function synthesizeFreshBankPacket(focusLabel) {
+      const uid = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      const seenSet = new Set(loadSeenPrompts());
+      const { q1Pool, q2Pool, q3Pool, q4Pool } = buildFullQuestionPool();
+
+      const pickedQ1 = selectDistinctItems(
+        q1Pool,
+        10,
+        seenSet,
+        (t) => getQuestionSignature(`${t.answer} ${t.text}`)
+      ).map((t, idx) => ({
+        ...t,
+        id: `syn-${uid}-q1-${idx + 1}`,
+        number: idx + 1
+      }));
+
+      const pickedQ2 = selectDistinctItems(
+        q2Pool,
+        8,
+        seenSet,
+        (p) => getQuestionSignature(`${p.tossup?.answer || ""} ${p.tossup?.text || ""}`)
+      ).map((p, idx) => ({
+        ...p,
+        id: `syn-${uid}-q2-${idx + 1}`,
+        number: idx + 1,
+        tossup: { ...p.tossup },
+        bonus: { ...p.bonus }
+      }));
+
+      const pickedQ3 = selectDistinctItems(
+        q3Pool,
+        3,
+        seenSet,
+        (c) => getQuestionSignature(`${c.title} ${c.questions?.[0]?.answer || ""}`)
+      ).map((cat, cIdx) => ({
+        ...cat,
+        id: `syn-${uid}-q3-cat-${cIdx + 1}`,
+        questions: (cat.questions || []).slice(0, 8).map((q, qIdx) => ({
+          ...q,
+          id: `syn-${uid}-q3-${cIdx + 1}-${qIdx + 1}`
+        }))
+      }));
+
+      const pickedQ4 = selectDistinctItems(
+        q4Pool,
+        8,
+        seenSet,
+        (t) => getQuestionSignature(`${t.answer} ${t.text}`)
+      ).map((t, idx) => ({
+        ...t,
+        id: `syn-${uid}-q4-${idx + 1}`,
+        number: idx + 1
+      }));
+
+      const timeTag = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      return {
+        id: `pkt-fresh-${uid}`,
+        title: `Fresh Set (${timeTag}): ${focusLabel}`,
+        focus: `${focusLabel} · Assembled from IHBB Question Bank`,
+        isAi: false,
+        isSynthesized: true,
+        createdAt: Date.now(),
+        q1Tossups: pickedQ1,
+        q2Pairs: pickedQ2,
+        q3Categories: pickedQ3,
+        q4Tossups: pickedQ4
+      };
+    }
+
+    function buildEmptyResultsForPacket(pkt) {
+      const q1Results = {};
+      pkt.q1Tossups.forEach((t) => {
+        q1Results[t.id] = { status: "unanswered", userAnswer: "", points: 0, overridden: false };
+      });
+
+      const q2Results = {};
+      pkt.q2Pairs.forEach((p) => {
+        q2Results[p.id] = {
+          tossupStatus: "unanswered",
+          tossupUserAnswer: "",
+          tossupPoints: 0,
+          tossupOverridden: false,
+          bonusStatus: "pending",
+          bonusUserAnswer: "",
+          bonusPoints: 0,
+          bonusOverridden: false
+        };
+      });
+
+      const q3Results = {};
+      pkt.q3Categories.forEach((cat) => {
+        const items = {};
+        cat.questions.forEach((q) => {
+          items[q.id] = { status: "unanswered", userAnswer: "", points: 0, overridden: false };
+        });
+        q3Results[cat.id] = {
+          completed: false,
+          timeLeft: 60,
+          currentIndex: 0,
+          items
+        };
+      });
+
+      const q4Results = {};
+      pkt.q4Tossups.forEach((t) => {
+        q4Results[t.id] = {
+          status: "unanswered",
+          userAnswer: "",
+          lockedZonePoints: null,
+          points: 0,
+          overridden: false
+        };
+      });
+
+      return { q1Results, q2Results, q3Results, q4Results };
+    }
+
+    function createInitialState(packetObj = PACKET_1) {
+      const res = buildEmptyResultsForPacket(packetObj);
+      return {
+        view: "quarter",
+        activeQuarter: 1,
+        quarterIntroSeen: { 1: false, 2: false, 3: false, 4: false },
+        activePacketId: packetObj.id,
+        customPacketOverride: packetObj.isAi || packetObj.isSynthesized ? packetObj : null,
+
+        speedMs: 135,
+        isRevealing: false,
+        isBuzzed: false,
+        revealedWords: 0,
+
+        q1Index: 0,
+        q1Results: res.q1Results,
+
+        q2Index: 0,
+        q2Stage: "tossup",
+        q2BonusTimerEnabled: false,
+        q2BonusTimeLeft: 8,
+        q2Results: res.q2Results,
+
+        q3OfficialCategoryId: null,
+        q3ActiveCategoryId: null,
+        q3IsExtraPractice: false,
+        q3Running: false,
+        q3Results: res.q3Results,
+
+        q4Index: 0,
+        q4Results: res.q4Results
+      };
+    }
+
+    function getActivePacket() {
+      if (
+        state.customPacketOverride &&
+        (state.customPacketOverride.id === state.activePacketId ||
+          state.customPacketOverride.isAi ||
+          state.customPacketOverride.isSynthesized)
+      ) {
+        return state.customPacketOverride;
+      }
+      const all = getAllPackets();
+      return all.find((p) => p.id === state.activePacketId) || PACKET_1;
+    }
+
+    function levenshtein(a, b) {
+      if (a === b) return 0;
+      const m = a.length;
+      const n = b.length;
+      if (m === 0) return n;
+      if (n === 0) return m;
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+        }
+      }
+      return dp[m][n];
+    }
+
+    function isAnswerMatch(userInput, canonicalAnswer, aliases = []) {
+      const rawTrimmed = (userInput || "").trim();
+      if (!rawTrimmed) return false;
+
+      const normUser = normalizeAnswer(rawTrimmed);
+      const rawLower = rawTrimmed.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const candidates = [canonicalAnswer, ...(Array.isArray(aliases) ? aliases : [])];
+
+      const canonicalWords = (canonicalAnswer || "").trim().split(/\s+/);
+      if (canonicalWords.length >= 2 && canonicalWords.length <= 4) {
+        const lastWord = canonicalWords[canonicalWords.length - 1];
+        if (lastWord.length >= 4 && !/^(empire|dynasty|war|treaty|accord|accords|plan|ordinance|rebellion|commune|spring|canal|carta|adwa|nanking|nantes|vienna|baghdad|rome|berlin|america|india|china|japan|mexico)$/i.test(lastWord)) {
+          candidates.push(lastWord);
+        }
+      }
+
+      for (const cand of candidates) {
+        if (!cand) continue;
+        const normCand = normalizeAnswer(cand);
+        const candLower = cand.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        if (rawLower === candLower || (normUser && normUser === normCand)) {
+          return true;
+        }
+        if (normUser && normCand) {
+          const dist = levenshtein(normUser, normCand);
+          const tolerance = normCand.length >= 11 ? 2 : normCand.length >= 5 ? 1 : 0;
+          if (dist <= tolerance) return true;
+        }
+      }
+      return false;
+    }
+
+    function tokenizePlainText(text) {
+      const words = (text || "").trim().split(/\s+/).filter(Boolean);
+      const sentenceEnds = [];
+      words.forEach((w, idx) => {
+        const isAbbrev = /^(U\.S\.|U\.K\.|U\.S\.S\.R\.|St\.|Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.|Gen\.|Col\.|Lt\.|Sgt\.|No\.|Vol\.|v\.|c\.|e\.g\.|i\.e\.|vs\.)$/i.test(w);
+        if ((/[.?!]["')\]]*$/.test(w) && !isAbbrev) || idx === words.length - 1) {
+          sentenceEnds.push(idx + 1);
+        }
+      });
+      return { words, totalWords: Math.max(1, words.length), sentenceEnds };
+    }
+
+    function tokenizeQ4Zones(item) {
+      const words = (item.text || "").trim().split(/\s+/).filter(Boolean);
+      const totalWords = Math.max(1, words.length);
+      const end30 = Math.max(1, Math.floor(totalWords * 0.35));
+      const end20 = Math.max(end30 + 1, Math.floor(totalWords * 0.7));
+      const sentenceEnds = [];
+      words.forEach((w, idx) => {
+        const isAbbrev = /^(U\.S\.|U\.K\.|U\.S\.S\.R\.|St\.|Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.|Gen\.|Col\.|Lt\.|Sgt\.|No\.|Vol\.|v\.|c\.|e\.g\.|i\.e\.|vs\.)$/i.test(w);
+        if ((/[.?!]["')\]]*$/.test(w) && !isAbbrev) || idx === words.length - 1) {
+          sentenceEnds.push(idx + 1);
+        }
+      });
+      return { words, totalWords, end30, end20, sentenceEnds };
+    }
+
+    function getQ4CurrentPointValue(revealedCount, parsedQ4) {
+      if (revealedCount <= parsedQ4.end30) return 30;
+      if (revealedCount <= parsedQ4.end20) return 20;
+      return 10;
+    }
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return createInitialState(PACKET_1);
+        const parsed = JSON.parse(raw);
+        const all = [...BUILTIN_PACKETS, ...loadCustomPackets()];
+        const foundPkt =
+          (parsed.customPacketOverride && parsed.customPacketOverride.id === parsed.activePacketId
+            ? parsed.customPacketOverride
+            : null) ||
+          all.find((p) => p.id === parsed.activePacketId) ||
+          parsed.customPacketOverride ||
+          PACKET_1;
+        const base = createInitialState(foundPkt);
+        return {
+          ...base,
+          ...parsed,
+          activePacketId: foundPkt.id,
+          customPacketOverride: foundPkt.isAi || foundPkt.isSynthesized ? foundPkt : null,
+          isRevealing: false,
+          isBuzzed: false,
+          q3Running: false,
+          quarterIntroSeen: { ...base.quarterIntroSeen, ...(parsed.quarterIntroSeen || {}) },
+          q1Results: { ...base.q1Results, ...(parsed.q1Results || {}) },
+          q2Results: { ...base.q2Results, ...(parsed.q2Results || {}) },
+          q3Results: { ...base.q3Results, ...(parsed.q3Results || {}) },
+          q4Results: { ...base.q4Results, ...(parsed.q4Results || {}) }
+        };
+      } catch (e) {
+        return createInitialState(PACKET_1);
+      }
+    }
+
+    function saveState() {
+      try {
+        const activePkt = getActivePacket();
+        const snapshot = {
+          ...state,
+          activePacketId: activePkt.id,
+          customPacketOverride: activePkt.isAi || activePkt.isSynthesized ? activePkt : null,
+          isRevealing: false,
+          isBuzzed: false,
+          q3Running: false
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      } catch (e) {
+        // Ignore storage errors gracefully
+      }
+    }
+
+    function markPacketQuestionsSeen(pkt) {
+      const items = [];
+      (pkt.q1Tossups || []).forEach((t) => items.push(`${t.answer} ${t.text}`));
+      (pkt.q2Pairs || []).forEach((p) => {
+        items.push(`${p.tossup.answer} ${p.tossup.text}`);
+        items.push(`${p.bonus.answer} ${p.bonus.prompt}`);
+      });
+      (pkt.q3Categories || []).forEach((c) => (c.questions || []).forEach((q) => items.push(`${q.answer} ${q.prompt}`)));
+      (pkt.q4Tossups || []).forEach((t) => items.push(`${t.answer} ${t.text}`));
+      recordSeenPrompts(items);
+    }
+
+    function switchToPacket(pkt, toastMessage = null) {
+      stopAllTimers();
+      const fresh = createInitialState(pkt);
+      fresh.speedMs = state.speedMs;
+      fresh.q2BonusTimerEnabled = state.q2BonusTimerEnabled;
+      fresh.activePacketId = pkt.id;
+      fresh.customPacketOverride = pkt.isAi || pkt.isSynthesized ? pkt : null;
+      state = fresh;
+      markPacketQuestionsSeen(pkt);
+      saveState();
+      render();
+      showToast(toastMessage || `Loaded "${pkt.title}"`);
+    }
+
+    // =========================================================================
+    // 3. NON-BLOCKING PACKET GENERATOR (INSTANT BANK ASSEMBLY + FAST TIMEOUT)
+    // =========================================================================
+    function generateFreshPacket(focusLabel) {
+      const statusBox = document.getElementById("aiGenStatusBox");
+      const genBtn = document.getElementById("btnGenerateAiPacket");
+      if (genBtn) genBtn.disabled = true;
+
+      try {
+        const freshPacket = synthesizeFreshBankPacket(focusLabel);
+        const customs = loadCustomPackets();
+        customs.unshift(freshPacket);
+        saveCustomPackets(customs);
+
+        if (statusBox) {
+          statusBox.classList.remove("hidden");
+          statusBox.textContent = `Assembled fresh non-repeating packet: "${freshPacket.title}".`;
+        }
+        closePacketModal();
+        switchToPacket(freshPacket, `Created fresh packet: "${freshPacket.title}"`);
+      } catch (err) {
+        if (statusBox) {
+          statusBox.classList.remove("hidden");
+          statusBox.textContent = `Could not assemble packet (${err.message}).`;
+        }
+      } finally {
+        if (genBtn) genBtn.disabled = false;
+      }
+    }
+
+    // =========================================================================
+    // 4. TIMERS, SCORING & 4-QUARTER GAMEPLAY CONTROLLER
+    // =========================================================================
+    let revealInterval = null;
+    let bonusInterval = null;
+    let lightningInterval = null;
+    let toastTimeout = null;
+
+    function stopAllTimers() {
+      if (revealInterval) {
+        clearInterval(revealInterval);
+        revealInterval = null;
+      }
+      if (bonusInterval) {
+        clearInterval(bonusInterval);
+        bonusInterval = null;
+      }
+      if (lightningInterval) {
+        clearInterval(lightningInterval);
+        lightningInterval = null;
+      }
+      state.isRevealing = false;
+      state.q3Running = false;
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById("toastBanner");
+      const inner = document.getElementById("toastInner");
+      if (!banner || !inner) return;
+      inner.textContent = msg;
+      banner.classList.remove("opacity-0", "translate-y-2");
+      banner.classList.add("opacity-100", "translate-y-0");
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.remove("opacity-100", "translate-y-0");
+        banner.classList.add("opacity-0", "translate-y-2");
+      }, 2800);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function getActiveTossupObject() {
+      const pkt = getActivePacket();
+      if (state.activeQuarter === 1) return pkt.q1Tossups[state.q1Index];
+      if (state.activeQuarter === 2 && state.q2Stage === "tossup") return pkt.q2Pairs[state.q2Index].tossup;
+      if (state.activeQuarter === 4) return pkt.q4Tossups[state.q4Index];
+      return null;
+    }
+
+    function isCurrentTossupGraded() {
+      const pkt = getActivePacket();
+      if (state.activeQuarter === 1) {
+        return state.q1Results[pkt.q1Tossups[state.q1Index].id].status !== "unanswered";
+      }
+      if (state.activeQuarter === 2) {
+        return state.q2Results[pkt.q2Pairs[state.q2Index].id].tossupStatus !== "unanswered";
+      }
+      if (state.activeQuarter === 4) {
+        return state.q4Results[pkt.q4Tossups[state.q4Index].id].status !== "unanswered";
+      }
+      return false;
+    }
+
+    function computeQuarterScores() {
+      const pkt = getActivePacket();
+      let q1 = 0;
+      let q1Done = 0;
+      pkt.q1Tossups.forEach((t) => {
+        const r = state.q1Results[t.id];
+        q1 += r.points || 0;
+        if (r.status !== "unanswered") q1Done++;
+      });
+
+      let q2 = 0;
+      let q2BonusesHit = 0;
+      let q2Done = 0;
+      pkt.q2Pairs.forEach((p) => {
+        const r = state.q2Results[p.id];
+        q2 += (r.tossupPoints || 0) + (r.bonusPoints || 0);
+        if (r.bonusPoints > 0) q2BonusesHit++;
+        if (r.tossupStatus !== "unanswered" && r.bonusStatus !== "pending") q2Done++;
+      });
+
+      let q3 = 0;
+      let q3Correct = 0;
+      let q3Sweep = 0;
+      let q3Done = false;
+      if (state.q3OfficialCategoryId) {
+        const cat = pkt.q3Categories.find((c) => c.id === state.q3OfficialCategoryId);
+        const catState = state.q3Results[state.q3OfficialCategoryId];
+        if (cat && catState) {
+          cat.questions.forEach((q) => {
+            const ir = catState.items[q.id];
+            if (ir.points > 0) {
+              q3 += ir.points;
+              q3Correct++;
+            }
+          });
+          if (q3Correct === cat.questions.length) {
+            q3Sweep = 20;
+            q3 += 20;
+          }
+          q3Done = catState.completed;
+        }
+      }
+
+      let q4 = 0;
+      let count30 = 0;
+      let count20 = 0;
+      let count10 = 0;
+      let q4Done = 0;
+      pkt.q4Tossups.forEach((t) => {
+        const r = state.q4Results[t.id];
+        q4 += r.points || 0;
+        if (r.points === 30) count30++;
+        else if (r.points === 20) count20++;
+        else if (r.points === 10) count10++;
+        if (r.status !== "unanswered") q4Done++;
+      });
+
+      return {
+        q1,
+        q1Done,
+        q2,
+        q2BonusesHit,
+        q2Done,
+        q3,
+        q3Correct,
+        q3Sweep,
+        q3Done,
+        q4,
+        count30,
+        count20,
+        count10,
+        q4Done,
+        total: q1 + q2 + q3 + q4
+      };
+    }
+
+    function updateClueBoxInPlace() {
+      const tObj = getActiveTossupObject();
+      if (!tObj) return;
+      const tokens = tokenizePlainText(tObj.text);
+      const box = document.getElementById("tossupClueBox");
+      const bar = document.getElementById("revealProgressBar");
+      const lbl = document.getElementById("revealProgressLabel");
+      const zoneBadge = document.getElementById("q4ZoneBadge");
+
+      if (box) {
+        box.innerHTML = tokens.words
+          .map((w, idx) =>
+            idx < state.revealedWords
+              ? `<span class="word-reveal opacity-100">${escapeHtml(w)}</span> `
+              : `<span class="opacity-0 select-none">${escapeHtml(w)}</span> `
+          )
+          .join("");
+      }
+      const pct = Math.round((state.revealedWords / tokens.totalWords) * 100);
+      if (bar) bar.style.width = `${pct}%`;
+      if (lbl) lbl.textContent = `${state.revealedWords} / ${tokens.totalWords} words`;
+
+      if (state.activeQuarter === 4 && zoneBadge) {
+        const z = tokenizeQ4Zones(tObj);
+        const val = getQ4CurrentPointValue(state.revealedWords, z);
+        zoneBadge.textContent = `CURRENT VALUE: +${val} PTS`;
+      }
+    }
+
+    function startProgressiveReveal() {
+      if (revealInterval) {
+        clearInterval(revealInterval);
+        revealInterval = null;
+      }
+      const tObj = getActiveTossupObject();
+      if (!tObj || isCurrentTossupGraded() || state.isBuzzed) return;
+      const tokens = tokenizePlainText(tObj.text);
+      if (state.revealedWords >= tokens.totalWords) return;
+
+      state.isRevealing = true;
+      revealInterval = setInterval(() => {
+        if (state.view !== "quarter" || state.isBuzzed || isCurrentTossupGraded()) {
+          stopAllTimers();
+          return;
+        }
+        if (state.revealedWords < tokens.totalWords) {
+          state.revealedWords += 1;
+          updateClueBoxInPlace();
+          if (state.revealedWords >= tokens.totalWords) {
+            stopAllTimers();
+            render();
+          }
+        }
+      }, state.speedMs);
+    }
+
+    function startBonusTimer() {
+      if (bonusInterval) {
+        clearInterval(bonusInterval);
+        bonusInterval = null;
+      }
+      if (!state.q2BonusTimerEnabled) return;
+      state.q2BonusTimeLeft = 8;
+      bonusInterval = setInterval(() => {
+        if (state.view !== "quarter" || state.activeQuarter !== 2 || state.q2Stage !== "bonus") {
+          clearInterval(bonusInterval);
+          bonusInterval = null;
+          return;
+        }
+        state.q2BonusTimeLeft -= 1;
+        const el = document.getElementById("bonusTimerBadge");
+        if (el) el.textContent = `${state.q2BonusTimeLeft}s`;
+        if (state.q2BonusTimeLeft <= 0) {
+          clearInterval(bonusInterval);
+          bonusInterval = null;
+          submitQ2Bonus(null, true);
+        }
+      }, 1000);
+    }
+
+    function startLightningTimer(categoryId) {
+      if (lightningInterval) {
+        clearInterval(lightningInterval);
+        lightningInterval = null;
+      }
+      const catState = state.q3Results[categoryId];
+      if (!catState || catState.completed) return;
+
+      state.q3Running = true;
+      lightningInterval = setInterval(() => {
+        if (state.view !== "quarter" || state.activeQuarter !== 3 || state.q3ActiveCategoryId !== categoryId) {
+          clearInterval(lightningInterval);
+          lightningInterval = null;
+          state.q3Running = false;
+          return;
+        }
+        catState.timeLeft -= 1;
+        const clockEl = document.getElementById("lightningClock");
+        if (clockEl) clockEl.textContent = `${Math.max(0, catState.timeLeft)}s`;
+
+        if (catState.timeLeft <= 0) {
+          finishLightningCategory(categoryId, true);
+        }
+      }, 1000);
+    }
+
+    function triggerBuzz() {
+      if (state.view !== "quarter") return;
+      if (state.activeQuarter === 3) return;
+      if (state.activeQuarter === 2 && state.q2Stage !== "tossup") return;
+      if (isCurrentTossupGraded() || state.isBuzzed) return;
+
+      stopAllTimers();
+      if (state.revealedWords === 0) state.revealedWords = 1;
+      state.isBuzzed = true;
+      render();
+      requestAnimationFrame(() => {
+        const inp = document.getElementById("buzzAnswerInput");
+        if (inp) inp.focus();
+      });
+    }
+
+    function submitTossupAnswer(e) {
+      const pkt = getActivePacket();
+      if (e) e.preventDefault();
+      const inp = document.getElementById("buzzAnswerInput");
+      const typed = inp ? inp.value.trim() : "";
+      if (!typed) {
+        showToast("Type an answer or click Pass (0 pts).");
+        if (inp) inp.focus();
+        return;
+      }
+
+      if (state.activeQuarter === 1) {
+        const t = pkt.q1Tossups[state.q1Index];
+        const ok = isAnswerMatch(typed, t.answer, t.aliases);
+        state.q1Results[t.id] = {
+          status: ok ? "correct" : "incorrect",
+          userAnswer: typed,
+          points: ok ? 10 : 0,
+          overridden: false
+        };
+        state.isBuzzed = false;
+        state.revealedWords = tokenizePlainText(t.text).totalWords;
+        showToast(ok ? `Correct! +10 pts — ${t.answer}` : `Incorrect (0 pts). Answer: ${t.answer}`);
+      } else if (state.activeQuarter === 2) {
+        const pair = pkt.q2Pairs[state.q2Index];
+        const ok = isAnswerMatch(typed, pair.tossup.answer, pair.tossup.aliases);
+        state.revealedWords = tokenizePlainText(pair.tossup.text).totalWords;
+        state.isBuzzed = false;
+        if (ok) {
+          state.q2Results[pair.id] = {
+            ...state.q2Results[pair.id],
+            tossupStatus: "correct",
+            tossupUserAnswer: typed,
+            tossupPoints: 10,
+            tossupOverridden: false,
+            bonusStatus: "pending"
+          };
+          state.q2Stage = "bonus";
+          showToast(`Tossup +10 pts! Bonus unlocked — ${pair.tossup.answer}`);
+          saveState();
+          render();
+          startBonusTimer();
+          requestAnimationFrame(() => {
+            const bInp = document.getElementById("bonusAnswerInput");
+            if (bInp) bInp.focus();
+          });
+          return;
+        } else {
+          state.q2Results[pair.id] = {
+            ...state.q2Results[pair.id],
+            tossupStatus: "incorrect",
+            tossupUserAnswer: typed,
+            tossupPoints: 0,
+            tossupOverridden: false,
+            bonusStatus: "skipped",
+            bonusUserAnswer: "[Bonus skipped — tossup missed]",
+            bonusPoints: 0
+          };
+          state.q2Stage = "review";
+          showToast(`Incorrect (0 pts). Answer: ${pair.tossup.answer}`);
+        }
+      } else if (state.activeQuarter === 4) {
+        const t = pkt.q4Tossups[state.q4Index];
+        const z = tokenizeQ4Zones(t);
+        const zonePts = getQ4CurrentPointValue(state.revealedWords, z);
+        const ok = isAnswerMatch(typed, t.answer, t.aliases);
+        state.q4Results[t.id] = {
+          status: ok ? "correct" : "incorrect",
+          userAnswer: typed,
+          lockedZonePoints: zonePts,
+          points: ok ? zonePts : 0,
+          overridden: false
+        };
+        state.isBuzzed = false;
+        state.revealedWords = tokenizePlainText(t.text).totalWords;
+        showToast(ok ? `Correct! +${zonePts} pts — ${t.answer}` : `Incorrect (0 pts). Answer: ${t.answer}`);
+      }
+
+      saveState();
+      render();
+    }
+
+    function passCurrentTossup() {
+      const pkt = getActivePacket();
+      stopAllTimers();
+      state.isBuzzed = false;
+
+      if (state.activeQuarter === 1) {
+        const t = pkt.q1Tossups[state.q1Index];
+        state.revealedWords = tokenizePlainText(t.text).totalWords;
+        state.q1Results[t.id] = {
+          status: "passed",
+          userAnswer: "[Passed]",
+          points: 0,
+          overridden: false
+        };
+        showToast(`Passed (0 pts) — ${t.answer}`);
+      } else if (state.activeQuarter === 2) {
+        const pair = pkt.q2Pairs[state.q2Index];
+        state.revealedWords = tokenizePlainText(pair.tossup.text).totalWords;
+        state.q2Results[pair.id] = {
+          ...state.q2Results[pair.id],
+          tossupStatus: "passed",
+          tossupUserAnswer: "[Passed]",
+          tossupPoints: 0,
+          bonusStatus: "skipped",
+          bonusUserAnswer: "[Bonus skipped — tossup passed]",
+          bonusPoints: 0
+        };
+        state.q2Stage = "review";
+        showToast(`Passed (0 pts). Bonus skipped.`);
+      } else if (state.activeQuarter === 4) {
+        const t = pkt.q4Tossups[state.q4Index];
+        state.revealedWords = tokenizePlainText(t.text).totalWords;
+        state.q4Results[t.id] = {
+          status: "passed",
+          userAnswer: "[Passed]",
+          lockedZonePoints: null,
+          points: 0,
+          overridden: false
+        };
+        showToast(`Passed (0 pts) — ${t.answer}`);
+      }
+
+      saveState();
+      render();
+    }
+
+    function submitQ2Bonus(e, isPassOrTimeout = false) {
+      const pkt = getActivePacket();
+      if (e) e.preventDefault();
+      if (bonusInterval) {
+        clearInterval(bonusInterval);
+        bonusInterval = null;
+      }
+      const pair = pkt.q2Pairs[state.q2Index];
+      const bInp = document.getElementById("bonusAnswerInput");
+      const typed = bInp ? bInp.value.trim() : "";
+
+      if (!isPassOrTimeout && !typed) {
+        showToast("Type your bonus answer or click Pass Bonus (0 pts).");
+        if (bInp) bInp.focus();
+        return;
+      }
+
+      if (isPassOrTimeout) {
+        state.q2Results[pair.id] = {
+          ...state.q2Results[pair.id],
+          bonusStatus: "passed",
+          bonusUserAnswer: "[Passed]",
+          bonusPoints: 0,
+          bonusOverridden: false
+        };
+        showToast(`Bonus passed (0 pts) — ${pair.bonus.answer}`);
+      } else {
+        const ok = isAnswerMatch(typed, pair.bonus.answer, pair.bonus.aliases);
+        state.q2Results[pair.id] = {
+          ...state.q2Results[pair.id],
+          bonusStatus: ok ? "correct" : "incorrect",
+          bonusUserAnswer: typed,
+          bonusPoints: ok ? 10 : 0,
+          bonusOverridden: false
+        };
+        showToast(ok ? `Bonus Correct! +10 pts — ${pair.bonus.answer}` : `Bonus Incorrect (0 pts). Answer: ${pair.bonus.answer}`);
+      }
+
+      state.q2Stage = "review";
+      saveState();
+      render();
+    }
+
+    function selectQ3Category(categoryId, isExtra = false) {
+      if (!state.q3OfficialCategoryId) {
+        state.q3OfficialCategoryId = categoryId;
+        state.q3IsExtraPractice = false;
+      } else {
+        state.q3IsExtraPractice = categoryId !== state.q3OfficialCategoryId || isExtra;
+      }
+      state.q3ActiveCategoryId = categoryId;
+      const catState = state.q3Results[categoryId];
+      if (!catState.completed) {
+        saveState();
+        render();
+        startLightningTimer(categoryId);
+        requestAnimationFrame(() => {
+          const inp = document.getElementById("q3LightningInput");
+          if (inp) inp.focus();
+        });
+      } else {
+        saveState();
+        render();
+      }
+    }
+
+    function submitQ3Answer(e, isPass = false) {
+      const pkt = getActivePacket();
+      if (e) e.preventDefault();
+      const categoryId = state.q3ActiveCategoryId;
+      if (!categoryId) return;
+      const cat = pkt.q3Categories.find((c) => c.id === categoryId);
+      const catState = state.q3Results[categoryId];
+      if (!cat || catState.completed) return;
+
+      const qItem = cat.questions[catState.currentIndex];
+      const inp = document.getElementById("q3LightningInput");
+      const typed = inp ? inp.value.trim() : "";
+
+      if (!isPass && !typed) {
+        if (inp) inp.focus();
+        return;
+      }
+
+      if (isPass) {
+        catState.items[qItem.id] = {
+          status: "passed",
+          userAnswer: "[Passed]",
+          points: 0,
+          overridden: false
+        };
+      } else {
+        const ok = isAnswerMatch(typed, qItem.answer, qItem.aliases);
+        catState.items[qItem.id] = {
+          status: ok ? "correct" : "incorrect",
+          userAnswer: typed,
+          points: ok ? 10 : 0,
+          overridden: false
+        };
+      }
+
+      if (catState.currentIndex + 1 < cat.questions.length) {
+        catState.currentIndex += 1;
+        saveState();
+        render();
+        requestAnimationFrame(() => {
+          const nextInp = document.getElementById("q3LightningInput");
+          if (nextInp) nextInp.focus();
+        });
+      } else {
+        finishLightningCategory(categoryId, false);
+      }
+    }
+
+    function finishLightningCategory(categoryId, timedOut) {
+      const pkt = getActivePacket();
+      if (lightningInterval) {
+        clearInterval(lightningInterval);
+        lightningInterval = null;
+      }
+      state.q3Running = false;
+      const cat = pkt.q3Categories.find((c) => c.id === categoryId);
+      const catState = state.q3Results[categoryId];
+      if (!cat || !catState) return;
+
+      cat.questions.forEach((q) => {
+        if (catState.items[q.id].status === "unanswered") {
+          catState.items[q.id] = {
+            status: "passed",
+            userAnswer: "[Time Expired]",
+            points: 0,
+            overridden: false
+          };
+        }
+      });
+
+      catState.completed = true;
+      const correctCount = cat.questions.filter((q) => catState.items[q.id].points > 0).length;
+      if (correctCount === cat.questions.length) {
+        showToast(`SWEEP! All 8/8 correct + 20-pt Sweep Bonus (100 pts)!`);
+      } else if (timedOut) {
+        showToast(`Time's up! You got ${correctCount}/8 (${correctCount * 10} pts).`);
+      } else {
+        showToast(`Lightning Round finished: ${correctCount}/8 (${correctCount * 10} pts).`);
+      }
+      saveState();
+      render();
+    }
+
+    function switchToQuarter(q, skipIntro = false) {
+      const pkt = getActivePacket();
+      stopAllTimers();
+      state.view = "quarter";
+      state.activeQuarter = q;
+      state.isBuzzed = false;
+      if (skipIntro) {
+        state.quarterIntroSeen[q] = true;
+      }
+
+      if (q === 1) {
+        const t = pkt.q1Tossups[state.q1Index];
+        const done = state.q1Results[t.id].status !== "unanswered";
+        state.revealedWords = done ? tokenizePlainText(t.text).totalWords : 0;
+      } else if (q === 2) {
+        const p = pkt.q2Pairs[state.q2Index];
+        const r = state.q2Results[p.id];
+        if (r.tossupStatus === "unanswered") {
+          state.q2Stage = "tossup";
+          state.revealedWords = 0;
+        } else if (r.bonusStatus === "pending") {
+          state.q2Stage = "bonus";
+          state.revealedWords = tokenizePlainText(p.tossup.text).totalWords;
+        } else {
+          state.q2Stage = "review";
+          state.revealedWords = tokenizePlainText(p.tossup.text).totalWords;
+        }
+      } else if (q === 4) {
+        const t = pkt.q4Tossups[state.q4Index];
+        const done = state.q4Results[t.id].status !== "unanswered";
+        state.revealedWords = done ? tokenizePlainText(t.text).totalWords : 0;
+      }
+
+      saveState();
+      render();
+
+      if (state.quarterIntroSeen[q] && (q === 1 || (q === 2 && state.q2Stage === "tossup") || q === 4) && !isCurrentTossupGraded()) {
+        startProgressiveReveal();
+      }
+    }
+
+    function navigateQuestionWithinQuarter(delta) {
+      const pkt = getActivePacket();
+      stopAllTimers();
+      state.isBuzzed = false;
+
+      if (state.activeQuarter === 1) {
+        state.q1Index = Math.max(0, Math.min(pkt.q1Tossups.length - 1, state.q1Index + delta));
+        const t = pkt.q1Tossups[state.q1Index];
+        const done = state.q1Results[t.id].status !== "unanswered";
+        state.revealedWords = done ? tokenizePlainText(t.text).totalWords : 0;
+        saveState();
+        render();
+        if (!done) startProgressiveReveal();
+      } else if (state.activeQuarter === 2) {
+        state.q2Index = Math.max(0, Math.min(pkt.q2Pairs.length - 1, state.q2Index + delta));
+        const p = pkt.q2Pairs[state.q2Index];
+        const r = state.q2Results[p.id];
+        if (r.tossupStatus === "unanswered") {
+          state.q2Stage = "tossup";
+          state.revealedWords = 0;
+        } else if (r.bonusStatus === "pending") {
+          state.q2Stage = "bonus";
+          state.revealedWords = tokenizePlainText(p.tossup.text).totalWords;
+        } else {
+          state.q2Stage = "review";
+          state.revealedWords = tokenizePlainText(p.tossup.text).totalWords;
+        }
+        saveState();
+        render();
+        if (state.q2Stage === "tossup") startProgressiveReveal();
+      } else if (state.activeQuarter === 4) {
+        state.q4Index = Math.max(0, Math.min(pkt.q4Tossups.length - 1, state.q4Index + delta));
+        const t = pkt.q4Tossups[state.q4Index];
+        const done = state.q4Results[t.id].status !== "unanswered";
+        state.revealedWords = done ? tokenizePlainText(t.text).totalWords : 0;
+        saveState();
+        render();
+        if (!done) startProgressiveReveal();
+      }
+    }
+
+    function resetEntireRound() {
+      const currentPkt = getActivePacket();
+      stopAllTimers();
+      const focusLabel = currentPkt.focus
+        ? currentPkt.focus.split("·")[0].trim()
+        : "Balanced World History (IHBB Regional Style)";
+      const freshPacket = synthesizeFreshBankPacket(focusLabel);
+      const customs = loadCustomPackets();
+      customs.unshift(freshPacket);
+      saveCustomPackets(customs);
+      switchToPacket(freshPacket, `New round started with "${freshPacket.title}" (0 / 600).`);
+    }
+
+    function openPacketModal() {
+      const modal = document.getElementById("packetModalBackdrop");
+      const seenBadge = document.getElementById("seenCountBadge");
+      const listEl = document.getElementById("packetListContainer");
+      if (seenBadge) seenBadge.textContent = `${loadSeenPrompts().length} seen prompts tracked`;
+      if (listEl) {
+        listEl.innerHTML = getAllPackets()
+          .map((p) => {
+            const isCurr = p.id === state.activePacketId;
+            return `
+              <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl border ${
+                isCurr ? "border-amber-500 bg-amber-50/70" : "border-slate-200 bg-white"
+              }">
+                <div>
+                  <div class="font-bold text-sm text-slate-900">${escapeHtml(p.title)}</div>
+                  <div class="text-xs text-slate-500">${escapeHtml(p.focus || "4-Quarter IHBB Set")}</div>
+                </div>
+                <button
+                  type="button"
+                  data-loadpkt="${p.id}"
+                  class="load-pkt-btn px-3.5 py-2 rounded-xl text-xs font-bold ${
+                    isCurr ? "bg-amber-600 text-white" : "bg-navy-900 text-white hover:bg-navy-850"
+                  } cursor-pointer"
+                >
+                  ${isCurr ? "Active" : "Load Packet"}
+                </button>
+              </div>
+            `;
+          })
+          .join("");
+
+        listEl.querySelectorAll(".load-pkt-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const target = getAllPackets().find((x) => x.id === btn.getAttribute("data-loadpkt"));
+            if (target) {
+              closePacketModal();
+              switchToPacket(target);
+            }
+          });
+        });
+      }
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
+    }
+
+    function closePacketModal() {
+      const modal = document.getElementById("packetModalBackdrop");
+      if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    function renderPacketAndStepperHeader() {
+      const pkt = getActivePacket();
+      const scores = computeQuarterScores();
+      const headerTotal = document.getElementById("headerTotalScore");
+      if (headerTotal) headerTotal.textContent = scores.total;
+
+      const summaryBtn = document.getElementById("btnSummaryView");
+      if (summaryBtn) {
+        summaryBtn.textContent = state.view === "summary" ? "Back to Round" : "Scorecard";
+      }
+
+      const bar = document.getElementById("activePacketBar");
+      if (bar) {
+        bar.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-mono font-bold text-amber-700 dark:text-amber-400">PACKET:</span>
+            <span class="font-semibold text-navy-900 dark:text-slate-100">${escapeHtml(pkt.title)}</span>
+            <span class="text-slate-400">·</span>
+            <span class="text-slate-500 dark:text-slate-400">${escapeHtml(pkt.focus || "4-Quarter IHBB")}</span>
+          </div>
+          <button type="button" id="btnQuickSwitchPacket" class="text-xs font-semibold text-amber-800 dark:text-amber-300 hover:underline cursor-pointer">
+            Switch / New Packet ↻
+          </button>
+        `;
+        document.getElementById("btnQuickSwitchPacket")?.addEventListener("click", openPacketModal);
+      }
+
+      const stepper = document.getElementById("quarterStepper");
+      if (stepper) {
+        const qMeta = [
+          { q: 1, title: "Q1 · Tossups", sub: `${scores.q1Done}/10`, score: `${scores.q1}/100` },
+          { q: 2, title: "Q2 · Tossup+Bonus", sub: `${scores.q2Done}/8`, score: `${scores.q2}/160` },
+          { q: 3, title: "Q3 · 60s Lightning", sub: scores.q3Done ? "Done" : "8 Qs", score: `${scores.q3}/100` },
+          { q: 4, title: "Q4 · 30/20/10", sub: `${scores.q4Done}/8`, score: `${scores.q4}/240` }
+        ];
+        stepper.innerHTML = qMeta
+          .map((m) => {
+            const active = state.view === "quarter" && state.activeQuarter === m.q;
+            return `
+              <button
+                type="button"
+                data-stepq="${m.q}"
+                class="step-q-btn flex items-center justify-between px-3 py-2 rounded-xl border text-left transition cursor-pointer ${
+                  active
+                    ? "bg-navy-900 text-white border-navy-900 dark:bg-amber-600 dark:text-navy-950 dark:border-amber-500"
+                    : "bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                }"
+              >
+                <span class="text-xs font-bold truncate pr-2">${m.title}</span>
+                <span class="flex items-center gap-1.5 font-mono text-[11px] shrink-0">
+                  <span class="opacity-75">${m.sub}</span>
+                  <span class="font-bold">${m.score}</span>
+                </span>
+              </button>
+            `;
+          })
+          .join("");
+        stepper.querySelectorAll(".step-q-btn").forEach((b) => {
+          b.addEventListener("click", () => switchToQuarter(Number(b.getAttribute("data-stepq")), true));
+        });
+      }
+    }
+
+    function renderQuarterIntro(main, qNum) {
+      const pkt = getActivePacket();
+      const info = {
+        1: {
+          tag: "Quarter 1 of 4 · 100 Points Max",
+          title: "Short Tossups (10 Questions)",
+          desc: "Ten pyramidal tossups worth 10 points each. Buzz in when you know the answer and type it—incorrect answers and passes score 0 points (no negative points).",
+          btn: "Begin Quarter 1 →"
+        },
+        2: {
+          tag: "Quarter 2 of 4 · 160 Points Max",
+          title: "Tossups + Unlocked Bonuses (8 Pairs)",
+          desc: "Eight pyramidal tossups worth 10 points each. Answering a tossup correctly unlocks a linked 10-point bonus question. Missed tossups award 0 points and skip the bonus.",
+          btn: "Begin Quarter 2 →"
+        },
+        3: {
+          tag: "Quarter 3 of 4 · 100 Points Max",
+          title: "60-Second Lightning Round",
+          desc: "Choose one of three themed categories. You have 60 seconds to answer up to 8 rapid-fire questions (+10 pts each). Sweeping all 8/8 earns a +20-point Sweep Bonus.",
+          btn: "Choose Lightning Category →"
+        },
+        4: {
+          tag: "Quarter 4 of 4 · 240 Points Max",
+          title: "30 / 20 / 10 Power Tossups (8 Questions)",
+          desc: "Eight deep multi-clue tossups. Buzzing early earns +30 pts, mid-clue earns +20 pts, and late clues earn +10 pts. Incorrect answers and passes score 0 points.",
+          btn: "Begin Quarter 4 →"
+        }
+      }[qNum];
+
+      main.innerHTML = `
+        <section class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-9 shadow-sm space-y-6">
+          <div>
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              ${info.tag} · ${escapeHtml(pkt.title)}
+            </span>
+            <h2 class="font-serif font-bold text-3xl text-navy-900 dark:text-slate-100 mt-1">${info.title}</h2>
+            <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">${info.desc}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="btnStartQuarterNow" type="button" class="px-6 py-3.5 rounded-2xl bg-navy-900 hover:bg-navy-850 dark:bg-amber-600 dark:hover:bg-amber-500 text-white dark:text-navy-950 font-bold text-sm sm:text-base transition cursor-pointer">
+              ${info.btn}
+            </button>
+          </div>
+        </section>
+      `;
+
+      document.getElementById("btnStartQuarterNow")?.addEventListener("click", () => {
+        switchToQuarter(qNum, true);
+      });
+    }
+
+    function renderTossupQuarter(main, qNum) {
+      const pkt = getActivePacket();
+      const scores = computeQuarterScores();
+
+      if (qNum === 2 && state.q2Stage === "bonus") {
+        const pair = pkt.q2Pairs[state.q2Index];
+        const r = state.q2Results[pair.id];
+        main.innerHTML = `
+          <section class="bg-white dark:bg-navy-900 border-2 border-amber-400 dark:border-amber-600 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-amber-600 text-white">
+                Q2 Pair ${pair.number}/8 · UNLOCKED BONUS (+10 PTS)
+              </span>
+              <span id="bonusTimerBadge" class="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950">
+                ${state.q2BonusTimerEnabled ? `${state.q2BonusTimeLeft}s` : "Untimed"}
+              </span>
+            </div>
+            <p class="font-serif text-xl sm:text-2xl leading-relaxed text-navy-900 dark:text-slate-100">
+              ${escapeHtml(pair.bonus.prompt)}
+            </p>
+            <form id="q2BonusForm" class="flex flex-col sm:flex-row gap-2.5">
+              <input
+                id="bonusAnswerInput"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Type bonus answer and press Enter..."
+                class="flex-1 px-4 py-3 rounded-xl bg-parchment-50 dark:bg-navy-950 border border-amber-300 dark:border-amber-700 text-base focus:outline-none focus:ring-2 focus:ring-amber-600"
+              />
+              <button type="submit" class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold transition cursor-pointer">
+                Submit Bonus
+              </button>
+              <button id="btnPassBonus" type="button" class="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition cursor-pointer">
+                Pass (0)
+              </button>
+            </form>
+            <div class="text-xs text-slate-500">Tossup already awarded: +${r.tossupPoints} pts (${escapeHtml(pair.tossup.answer)})</div>
+          </section>
+        `;
+        document.getElementById("q2BonusForm")?.addEventListener("submit", (e) => submitQ2Bonus(e, false));
+        document.getElementById("btnPassBonus")?.addEventListener("click", () => submitQ2Bonus(null, true));
+        return;
+      }
+
+      const list =
+        qNum === 1
+          ? pkt.q1Tossups
+          : qNum === 2
+          ? pkt.q2Pairs.map((p, idx) => ({
+              ...p.tossup,
+              id: p.id,
+              number: idx + 1,
+              category: p.category,
+              bonus: p.bonus,
+              pairRes: state.q2Results[p.id]
+            }))
+          : pkt.q4Tossups;
+      const idx = qNum === 1 ? state.q1Index : qNum === 2 ? state.q2Index : state.q4Index;
+      const item = list[idx];
+      const tokens = tokenizePlainText(item.text);
+      const q4Zones = qNum === 4 ? tokenizeQ4Zones(item) : null;
+      const currentVal = qNum === 4 ? getQ4CurrentPointValue(state.revealedWords, q4Zones) : 10;
+
+      const res =
+        qNum === 1
+          ? state.q1Results[item.id]
+          : qNum === 2
+          ? {
+              status: item.pairRes.tossupStatus,
+              userAnswer: item.pairRes.tossupUserAnswer,
+              points: item.pairRes.tossupPoints,
+              overridden: item.pairRes.tossupOverridden,
+              bonusStatus: item.pairRes.bonusStatus,
+              bonusPoints: item.pairRes.bonusPoints,
+              bonusUserAnswer: item.pairRes.bonusUserAnswer,
+              bonusAnswer: item.bonus.answer
+            }
+          : state.q4Results[item.id];
+
+      const isDone = res.status !== "unanswered";
+      const pct = Math.round((state.revealedWords / tokens.totalWords) * 100);
+
+      main.innerHTML = `
+        <div class="space-y-5">
+          <!-- Question Selector Strip -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-2xs">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              ${qNum === 1 ? "Quarter 1 · Short Tossups (100 Max)" : qNum === 2 ? "Quarter 2 · Tossups + Bonuses (160 Max)" : "Quarter 4 · 30/20/10 Pyramid (240 Max)"}
+            </div>
+            <div class="flex flex-wrap items-center gap-1">
+              ${list.map((it, i) => {
+                const r = qNum === 1 ? state.q1Results[it.id] : qNum === 2 ? { points: (state.q2Results[it.id].tossupPoints || 0) + (state.q2Results[it.id].bonusPoints || 0), status: state.q2Results[it.id].tossupStatus } : state.q4Results[it.id];
+                let dot = "bg-slate-300 dark:bg-slate-700";
+                if (r.points > 0) dot = "bg-emerald-500";
+                else if (r.status !== "unanswered") dot = "bg-red-500";
+                return `
+                  <button type="button" data-qjump="${i}" class="qjump-btn inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-mono font-semibold border transition cursor-pointer ${
+                    i === idx
+                      ? "bg-navy-900 text-white dark:bg-slate-100 dark:text-navy-950 border-navy-900 dark:border-slate-100"
+                      : "bg-slate-50 dark:bg-navy-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                  }">
+                    <span class="w-1.5 h-1.5 rounded-full ${dot}"></span>
+                    ${i + 1}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </div>
+
+          <!-- Tossup Card -->
+          <section class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-sm space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-100 dark:bg-navy-850 text-navy-900 dark:text-slate-200">
+                  Q${qNum} #${idx + 1} / ${list.length}
+                </span>
+                <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/50">
+                  ${escapeHtml(item.category || "World History")}
+                </span>
+              </div>
+              <div>
+                ${
+                  isDone
+                    ? `<span class="px-3 py-1 rounded-full text-xs font-mono font-bold ${
+                        res.points > 0 ? "bg-emerald-100 text-emerald-900" : "bg-slate-200 text-slate-700"
+                      }">TOSSUP: +${res.points || 0} PTS</span>`
+                    : qNum === 4
+                    ? `<span id="q4ZoneBadge" class="px-3 py-1 rounded-full text-xs font-mono font-extrabold bg-amber-100 text-amber-950 border border-amber-300">CURRENT VALUE: +${currentVal} PTS</span>`
+                    : `<span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-navy-900 dark:text-amber-300">VALUE: +10 PTS</span>`
+                }
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-500 mb-1">
+                <span>Clue Reveal</span>
+                <span id="revealProgressLabel" class="font-mono">${state.revealedWords} / ${tokens.totalWords} words</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div id="revealProgressBar" class="h-full bg-navy-900 dark:bg-amber-500 transition-all duration-150" style="width: ${pct}%"></div>
+              </div>
+            </div>
+
+            <div class="min-h-[135px]">
+              <p id="tossupClueBox" class="font-serif text-xl sm:text-2xl leading-relaxed text-slate-900 dark:text-slate-100">
+                ${tokens.words
+                  .map((w, wIdx) =>
+                    wIdx < state.revealedWords
+                      ? `<span class="word-reveal opacity-100">${escapeHtml(w)}</span> `
+                      : `<span class="opacity-0 select-none">${escapeHtml(w)}</span> `
+                  )
+                  .join("")}
+              </p>
+            </div>
+
+            ${
+              !isDone
+                ? !state.isBuzzed
+                  ? `
+                  <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button id="btnBuzzNow" type="button" class="buzz-ready inline-flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-base shadow-md transition cursor-pointer">
+                      <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                      <span>BUZZ IN ${qNum === 4 ? `(+${currentVal})` : ""}</span>
+                      <span class="hidden sm:inline text-xs font-mono bg-red-800/70 px-2 py-0.5 rounded">[SPACE]</span>
+                    </button>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <button id="btnRevealAll" type="button" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer">
+                        Full Clue
+                      </button>
+                      <button id="btnPassQ" type="button" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 transition cursor-pointer">
+                        Pass (0)
+                      </button>
+                    </div>
+                  </div>
+                `
+                  : `
+                  <form id="tossupBuzzForm" class="pt-4 border-t border-slate-100 dark:border-slate-800 bg-amber-50/70 dark:bg-amber-950/20 rounded-2xl p-4 space-y-3">
+                    <div class="text-sm font-bold text-navy-900 dark:text-slate-100">
+                      Buzzed! Type your answer ${qNum === 4 ? `for +${currentVal} pts` : "for +10 pts"} (0 pts if wrong):
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2.5">
+                      <input
+                        id="buzzAnswerInput"
+                        type="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Type answer and press Enter..."
+                        class="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-navy-950 border border-slate-300 dark:border-slate-700 text-base focus:outline-none focus:ring-2 focus:ring-amber-600"
+                      />
+                      <button type="submit" class="px-6 py-3 rounded-xl bg-navy-900 hover:bg-navy-850 dark:bg-amber-600 text-white dark:text-navy-950 font-bold transition cursor-pointer">
+                        Submit
+                      </button>
+                    </div>
+                  </form>
+                `
+                : `
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                  <div class="rounded-2xl p-4 bg-slate-50 dark:bg-navy-850 border border-slate-200 dark:border-slate-700">
+                    <div class="text-xs uppercase font-bold text-slate-500">Official Answer</div>
+                    <div class="font-serif font-bold text-2xl text-navy-900 dark:text-slate-100">${escapeHtml(item.answer)}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                      Your answer: <span class="font-mono">${escapeHtml(res.userAnswer || "—")}</span> · Tossup: <strong class="font-mono">+${res.points || 0} pts</strong>
+                    </div>
+                    ${
+                      qNum === 2
+                        ? `<div class="mt-2 pt-2 border-t border-slate-200/70 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300">
+                            Bonus (${escapeHtml(res.bonusAnswer)}): <span class="font-mono">${escapeHtml(res.bonusUserAnswer || "—")}</span> · <strong class="font-mono">+${res.bonusPoints || 0} pts</strong>
+                          </div>`
+                        : ""
+                    }
+                    ${item.explanation ? `<p class="mt-2 text-xs text-slate-500 dark:text-slate-400">${escapeHtml(item.explanation)}</p>` : ""}
+                  </div>
+                </div>
+              `
+            }
+
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+              <button id="btnPrevQ" type="button" ${idx === 0 ? "disabled" : ""} class="px-4 py-2.5 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-700 disabled:opacity-40 cursor-pointer">
+                ← Prev
+              </button>
+              ${
+                idx < list.length - 1
+                  ? `<button id="btnNextQ" type="button" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-navy-900 hover:bg-navy-850 dark:bg-slate-100 dark:text-navy-950 text-white transition cursor-pointer">
+                      Next (${idx + 2}/${list.length}) →
+                    </button>`
+                  : qNum < 4
+                  ? `<button id="btnAdvanceNextQtr" type="button" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white transition cursor-pointer">
+                      Advance to Quarter ${qNum + 1} →
+                    </button>`
+                  : `<button id="btnOpenSummaryEnd" type="button" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer">
+                      View Final Scorecard (${scores.total}/600) →
+                    </button>`
+              }
+            </div>
+          </section>
+        </div>
+      `;
+
+      document.querySelectorAll(".qjump-btn").forEach((b) => {
+        b.addEventListener("click", () => {
+          stopAllTimers();
+          state.isBuzzed = false;
+          const targetIdx = Number(b.getAttribute("data-qjump"));
+          if (qNum === 1) state.q1Index = targetIdx;
+          else if (qNum === 2) {
+            state.q2Index = targetIdx;
+            const pr = state.q2Results[pkt.q2Pairs[targetIdx].id];
+            state.q2Stage = pr.bonusStatus === "pending" ? "bonus" : "tossup";
+          } else if (qNum === 4) state.q4Index = targetIdx;
+          const nextObj = getActiveTossupObject();
+          state.revealedWords = nextObj && isCurrentTossupGraded() ? tokenizePlainText(nextObj.text).totalWords : 0;
+          saveState();
+          render();
+          if (state.activeQuarter === 2 && state.q2Stage === "bonus") startBonusTimer();
+          else startProgressiveReveal();
+        });
+      });
+
+      document.getElementById("btnBuzzNow")?.addEventListener("click", triggerBuzz);
+      document.getElementById("btnRevealAll")?.addEventListener("click", () => {
+        stopAllTimers();
+        state.revealedWords = tokens.totalWords;
+        render();
+      });
+      document.getElementById("btnPassQ")?.addEventListener("click", passCurrentTossup);
+      document.getElementById("tossupBuzzForm")?.addEventListener("submit", submitTossupAnswer);
+      document.getElementById("btnPrevQ")?.addEventListener("click", () => navigateQuestionWithinQuarter(-1));
+      document.getElementById("btnNextQ")?.addEventListener("click", () => navigateQuestionWithinQuarter(1));
+      document.getElementById("btnAdvanceNextQtr")?.addEventListener("click", () => switchToQuarter(qNum + 1, false));
+      document.getElementById("btnOpenSummaryEnd")?.addEventListener("click", () => {
+        stopAllTimers();
+        state.view = "summary";
+        saveState();
+        render();
+      });
+    }
+
+    function renderQuarter3(main) {
+      const pkt = getActivePacket();
+      const activeCatId = state.q3ActiveCategoryId;
+
+      if (!activeCatId) {
+        main.innerHTML = `
+          <section class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div>
+              <span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                Quarter 3 · 60-Second Lightning Round (100 Pts Max)
+              </span>
+              <h2 class="font-serif font-bold text-2xl sm:text-3xl text-navy-900 dark:text-slate-100 mt-1">
+                Select One of 3 Categories
+              </h2>
+              <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                8 questions · +10 pts each · +20-pt Sweep Bonus for 8/8 within 60 seconds.
+              </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              ${pkt.q3Categories.map((cat) => `
+                <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-parchment-50/70 dark:bg-navy-850 flex flex-col justify-between">
+                  <div>
+                    <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-navy-900 text-white dark:bg-amber-600 dark:text-navy-950">${escapeHtml(cat.badge || "Lightning")}</span>
+                    <h3 class="font-serif font-bold text-xl text-navy-900 dark:text-slate-100 mt-2.5">${escapeHtml(cat.title)}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${escapeHtml(cat.subtitle)}</p>
+                  </div>
+                  <button type="button" data-q3pick="${cat.id}" class="q3-pick-btn mt-5 w-full py-2.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-850 dark:bg-amber-600 text-white dark:text-navy-950 font-bold text-sm transition cursor-pointer">
+                    Start 60s Category →
+                  </button>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        `;
+        main.querySelectorAll(".q3-pick-btn").forEach((b) => {
+          b.addEventListener("click", () => selectQ3Category(b.getAttribute("data-q3pick"), false));
+        });
+        return;
+      }
+
+      const cat = pkt.q3Categories.find((c) => c.id === activeCatId) || pkt.q3Categories[0];
+      const catState = state.q3Results[cat.id];
+
+      if (!catState.completed) {
+        const qItem = cat.questions[catState.currentIndex];
+        main.innerHTML = `
+          <div class="space-y-5">
+            <div class="bg-navy-900 text-white rounded-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div class="text-xs font-mono uppercase text-amber-400 font-bold">${escapeHtml(cat.title)}</div>
+                <div class="text-sm text-slate-300 mt-0.5">Question ${catState.currentIndex + 1} of ${cat.questions.length}</div>
+              </div>
+              <div id="lightningClock" class="font-mono text-3xl font-extrabold text-amber-400">${Math.max(0, catState.timeLeft)}s</div>
+            </div>
+
+            <section class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+              <p class="font-serif text-2xl sm:text-3xl leading-relaxed text-navy-900 dark:text-slate-100">
+                ${escapeHtml(qItem.prompt)}
+              </p>
+              <form id="q3Form" class="flex flex-col sm:flex-row gap-2.5">
+                <input
+                  id="q3LightningInput"
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Type answer and press Enter..."
+                  class="flex-1 px-4 py-3.5 rounded-xl bg-parchment-50 dark:bg-navy-950 border-2 border-slate-300 dark:border-slate-700 text-lg focus:outline-none focus:border-amber-600"
+                />
+                <button type="submit" class="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition cursor-pointer">
+                  Submit
+                </button>
+                <button id="btnQ3Pass" type="button" class="px-5 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 text-sm font-semibold cursor-pointer">
+                  Pass (0)
+                </button>
+              </form>
+            </section>
+          </div>
+        `;
+        document.getElementById("q3Form")?.addEventListener("submit", (e) => submitQ3Answer(e, false));
+        document.getElementById("btnQ3Pass")?.addEventListener("click", () => submitQ3Answer(null, true));
+        return;
+      }
+
+      const rightCount = cat.questions.filter((q) => catState.items[q.id].points > 0).length;
+      const sweep = rightCount === cat.questions.length ? 20 : 0;
+      const catPts = rightCount * 10 + sweep;
+
+      main.innerHTML = `
+        <section class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <span class="text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400">Lightning Complete · ${escapeHtml(cat.title)}</span>
+              <h2 class="font-serif font-bold text-2xl sm:text-3xl text-navy-900 dark:text-slate-100 mt-1">
+                Score: ${catPts} / 100 Pts (${rightCount}/8 + ${sweep} sweep)
+              </h2>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnQ3ChooseOther" type="button" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 dark:border-slate-700 cursor-pointer">
+                Choose Another Category
+              </button>
+              <button id="btnQ3ToQ4" type="button" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer">
+                Advance to Quarter 4 →
+              </button>
+            </div>
+          </div>
+
+          <div class="divide-y divide-slate-100 dark:divide-slate-800">
+            ${cat.questions.map((q, idx) => {
+              const ir = catState.items[q.id];
+              return `
+                <div class="py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <div>
+                    <span class="font-mono text-xs text-slate-400 mr-2">#${idx + 1}</span>
+                    <span class="font-serif font-bold text-base">${escapeHtml(q.answer)}</span>
+                    <span class="text-xs text-slate-500 ml-2">(Typed: ${escapeHtml(ir.userAnswer || "—")})</span>
+                  </div>
+                  <span class="font-mono text-xs font-bold px-2.5 py-0.5 rounded-lg ${ir.points > 0 ? "bg-emerald-100 text-emerald-900" : "bg-slate-100 text-slate-600"}">
+                    +${ir.points || 0}
+                  </span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+
+      document.getElementById("btnQ3ChooseOther")?.addEventListener("click", () => {
+        state.q3ActiveCategoryId = null;
+        saveState();
+        render();
+      });
+      document.getElementById("btnQ3ToQ4")?.addEventListener("click", () => switchToQuarter(4, false));
+    }
+
+    function renderSummaryView(main) {
+      const scores = computeQuarterScores();
+      main.innerHTML = `
+        <section class="bg-white dark:bg-navy-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <span class="text-xs font-mono font-bold uppercase text-amber-700 dark:text-amber-400">4-Quarter IHBB Scorecard</span>
+              <h2 class="font-serif font-bold text-3xl sm:text-4xl text-navy-900 dark:text-slate-100 mt-1">
+                Total Score: ${scores.total} / 600 Pts
+              </h2>
+            </div>
+            <button id="btnSummaryBack" type="button" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-navy-900 dark:bg-amber-600 text-white dark:text-navy-950 cursor-pointer">
+              Back to Round
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div class="p-4 rounded-2xl bg-parchment-50 dark:bg-navy-850 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-bold text-slate-500">Quarter 1</div>
+              <div class="font-mono text-2xl font-extrabold mt-1">${scores.q1} / 100</div>
+            </div>
+            <div class="p-4 rounded-2xl bg-parchment-50 dark:bg-navy-850 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-bold text-slate-500">Quarter 2</div>
+              <div class="font-mono text-2xl font-extrabold mt-1">${scores.q2} / 160</div>
+            </div>
+            <div class="p-4 rounded-2xl bg-parchment-50 dark:bg-navy-850 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-bold text-slate-500">Quarter 3</div>
+              <div class="font-mono text-2xl font-extrabold mt-1">${scores.q3} / 100</div>
+            </div>
+            <div class="p-4 rounded-2xl bg-parchment-50 dark:bg-navy-850 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-bold text-slate-500">Quarter 4</div>
+              <div class="font-mono text-2xl font-extrabold mt-1">${scores.q4} / 240</div>
+            </div>
+          </div>
+        </section>
+      `;
+      document.getElementById("btnSummaryBack")?.addEventListener("click", () => switchToQuarter(state.activeQuarter, true));
+    }
+
+    function render() {
+      renderPacketAndStepperHeader();
+      const main = document.getElementById("mainContent");
+      if (!main) return;
+
+      if (state.view === "summary") {
+        renderSummaryView(main);
+        return;
+      }
+
+      const q = state.activeQuarter;
+      if (!state.quarterIntroSeen[q]) {
+        renderQuarterIntro(main, q);
+        return;
+      }
+
+      if (q === 3) renderQuarter3(main);
+      else renderTossupQuarter(main, q);
+    }
+
+    document.getElementById("btnSummaryView")?.addEventListener("click", () => {
+      if (state.view === "summary") {
+        switchToQuarter(state.activeQuarter, true);
+      } else {
+        stopAllTimers();
+        state.view = "summary";
+        saveState();
+        render();
+      }
+    });
+
+    document.getElementById("btnPacketDrawer")?.addEventListener("click", openPacketModal);
+    document.getElementById("btnClosePacketModal")?.addEventListener("click", closePacketModal);
+    document.getElementById("btnResetRound")?.addEventListener("click", resetEntireRound);
+
+    document.getElementById("btnClearSeenHistory")?.addEventListener("click", () => {
+      clearSeenPrompts();
+      const seenBadge = document.getElementById("seenCountBadge");
+      if (seenBadge) seenBadge.textContent = "0 seen prompts tracked";
+      showToast("Cleared seen-question history.");
+    });
+
+    document.getElementById("btnGenerateAiPacket")?.addEventListener("click", () => {
+      const preset = document.getElementById("aiTopicPreset")?.value || "Balanced World History (IHBB Regional Style)";
+      const custom = (document.getElementById("aiCustomFocus")?.value || "").trim();
+      const focusLabel = custom ? `${preset} — ${custom}` : preset;
+      generateFreshPacket(focusLabel);
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (state.view !== "quarter" || state.activeQuarter === 3) return;
+      const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        triggerBuzz();
+      }
+    });
+
+    // Boot cleanly
+    markPacketQuestionsSeen(getActivePacket());
+    render();
+    if (state.view === "quarter" && state.quarterIntroSeen[state.activeQuarter] && state.activeQuarter !== 3) {
+      startProgressiveReveal();
+    }
+  </script>
+</body>
+</html>
